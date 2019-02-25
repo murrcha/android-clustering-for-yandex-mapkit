@@ -7,61 +7,50 @@ import android.animation.ValueAnimator;
 import com.yandex.mapkit.geometry.Point;
 import com.yandex.mapkit.map.PlacemarkMapObject;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import androidx.annotation.NonNull;
 
 public class ClusterAnimator {
     @NonNull
-    public static ValueAnimator move(final @NonNull List<PlacemarkMapObject> objects, @NonNull final List<Point> to) {
-        if (objects.size() <= 0 || to.size() != objects.size()) {
+    public static ValueAnimator pointToBunch(final @NonNull List<PlacemarkMapObject> objects, @NonNull final List<Point> to) {
+        if (objects.isEmpty() || to.size() != objects.size()) {
             throw new IllegalArgumentException("Wrong objects or points count");
         }
         Point clusterPoint = calcCenter(to);
-        return move(objects, to, clusterPoint);
+        return pointToBunch(objects, to, clusterPoint);
     }
 
     @NonNull
-    public static ValueAnimator move(final @NonNull List<PlacemarkMapObject> objects, @NonNull final List<Point> to,
-            @NonNull Point clusterPoint) {
-        if (objects.size() <= 0 || to.size() != objects.size()) {
+    public static ValueAnimator pointToBunch(final @NonNull List<PlacemarkMapObject> objects, @NonNull final List<Point> to,
+            @NonNull final Point clusterPoint) {
+        if (objects.isEmpty() || to.size() != objects.size()) {
             throw new IllegalArgumentException("Wrong objects or points count");
-        }
-        final Map<PlacemarkMapObject, Double> deltaX = new HashMap<>(to.size());
-        final Map<PlacemarkMapObject, Double> deltaY = new HashMap<>(to.size());
-
-        final double currentX = clusterPoint.getLatitude();
-        final double currentY = clusterPoint.getLongitude();
-
-        for (int i = 0; i < objects.size(); i++) {
-            Point point = to.get(i);
-            PlacemarkMapObject object = objects.get(i);
-            deltaX.put(object, point.getLatitude() - currentX);
-            deltaY.put(object, point.getLongitude() - currentY);
         }
 
         final ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        final ValueAnimator.AnimatorUpdateListener updateListener = new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float factor = (float) animation.getAnimatedValue();
-                for (PlacemarkMapObject object : objects) {
-                    Double kx = deltaX.get(object);
-                    Double ky = deltaY.get(object);
-                    if (kx != null && ky != null) {
-                        double lat = currentX + (factor * kx);
-                        double lon = currentY + (factor * ky);
-                        object.setGeometry(new Point(lat, lon));
-                    }
+                double kx, ky, lat, lon;
+                for (int i = 0; i < objects.size(); i++) {
+                    PlacemarkMapObject object = objects.get(i);
+                    Point point = to.get(i);
+                    kx = point.getLatitude() - clusterPoint.getLatitude();
+                    ky = point.getLongitude() - clusterPoint.getLongitude();
+                    lat = clusterPoint.getLatitude() + (factor * kx);
+                    lon = clusterPoint.getLongitude() + (factor * ky);
+                    updateObjectGeometry(object, lat, lon);
                 }
             }
-        });
+        };
+        animator.addUpdateListener(updateListener);
         animator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                animator.removeAllUpdateListeners();
+                animator.removeUpdateListener(updateListener);
                 animation.removeListener(this);
             }
         });
@@ -69,45 +58,41 @@ public class ClusterAnimator {
     }
 
     @NonNull
-    public static ValueAnimator move(@NonNull final List<PlacemarkMapObject> objects, @NonNull Point to) {
+    public static ValueAnimator bunchToPoint(@NonNull final List<PlacemarkMapObject> objects, @NonNull Point to) {
         if (objects.isEmpty()) {
             throw new IllegalArgumentException("Empty objects");
         }
-        final Map<PlacemarkMapObject, Point> startPoint = new HashMap<>(objects.size());
-        final Map<PlacemarkMapObject, Double> deltaX = new HashMap<>(objects.size());
-        final Map<PlacemarkMapObject, Double> deltaY = new HashMap<>(objects.size());
+
+        final List<Point> startPoint = new ArrayList<>(objects.size());
+        for (PlacemarkMapObject placemarkMapObject : objects) {
+            startPoint.add(placemarkMapObject.getGeometry());
+        }
 
         final double targetX = to.getLatitude();
         final double targetY = to.getLongitude();
 
-        for (int i = 0; i < objects.size(); i++) {
-            PlacemarkMapObject object = objects.get(i);
-            startPoint.put(object, object.getGeometry());
-            deltaX.put(object, targetX - object.getGeometry().getLatitude());
-            deltaY.put(object, targetY - object.getGeometry().getLongitude());
-        }
-
         final ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        final ValueAnimator.AnimatorUpdateListener updateListener = new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float factor = (float) animation.getAnimatedValue();
-                for (PlacemarkMapObject object : objects) {
-                    Point start = startPoint.get(object);
-                    Double kx = deltaX.get(object);
-                    Double ky = deltaY.get(object);
-                    if (kx != null && ky != null && start != null) {
-                        double lat = start.getLatitude() + (factor * kx);
-                        double lon = start.getLongitude() + (factor * ky);
-                        object.setGeometry(new Point(lat, lon));
-                    }
+                double kx, ky, lat, lon;
+                for (int i = 0; i < objects.size(); i++) {
+                    PlacemarkMapObject object = objects.get(i);
+                    Point start = startPoint.get(i);
+                    kx = targetX - start.getLatitude();
+                    ky = targetY - start.getLongitude();
+                    lat = start.getLatitude() + (factor * kx);
+                    lon = start.getLongitude() + (factor * ky);
+                    updateObjectGeometry(object, lat, lon);
                 }
             }
-        });
+        };
+        animator.addUpdateListener(updateListener);
         animator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                animator.removeAllUpdateListeners();
+                animator.removeUpdateListener(updateListener);
                 animation.removeListener(this);
             }
         });
@@ -115,8 +100,8 @@ public class ClusterAnimator {
     }
 
     @NonNull
-    public static ValueAnimator move(@NonNull Point from, @NonNull Point to,
-            @NonNull final PlacemarkMapObject placemarkMapObject) {
+    public static ValueAnimator pointToPoint(@NonNull final PlacemarkMapObject placemarkMapObject, @NonNull Point to) {
+        Point from = placemarkMapObject.getGeometry();
         final double dX = to.getLatitude() - from.getLatitude();
         final double dY = to.getLongitude() - from.getLongitude();
 
@@ -124,19 +109,20 @@ public class ClusterAnimator {
         final double startY = from.getLongitude();
 
         final ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        final ValueAnimator.AnimatorUpdateListener updateListener = new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float factor = (float) animation.getAnimatedValue();
                 double lat = startX + (factor * dX);
                 double lon = startY + (factor * dY);
-                placemarkMapObject.setGeometry(new Point(lat, lon));
+                updateObjectGeometry(placemarkMapObject, lat, lon);
             }
-        });
+        };
+        animator.addUpdateListener(updateListener);
         animator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                animator.removeAllUpdateListeners();
+                animator.removeUpdateListener(updateListener);
                 animation.removeListener(this);
             }
         });
@@ -167,5 +153,13 @@ public class ClusterAnimator {
         latitude = Math.toDegrees(latitude);
         longitude = Math.toDegrees(longitude);
         return new Point(latitude, longitude);
+    }
+
+    private static void updateObjectGeometry(@NonNull PlacemarkMapObject placemarkMapObject, double lat, double lon) {
+        try {
+            placemarkMapObject.setGeometry(new Point(lat, lon));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
