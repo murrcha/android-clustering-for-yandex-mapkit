@@ -150,7 +150,8 @@ public class ClusterAnimator {
     }
 
     private static void updateObjectGeometry(@NonNull PlacemarkMapObject placemarkMapObject,
-                                             double lat, double lon) {
+                                             double lat,
+                                             double lon) {
         try {
             placemarkMapObject.setGeometry(new Point(lat, lon));
         } catch (Exception e) {
