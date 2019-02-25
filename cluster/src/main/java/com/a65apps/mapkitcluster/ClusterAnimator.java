@@ -1,10 +1,13 @@
-package com.a65apps.mapkitclustering;
+package com.a65apps.mapkitcluster;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 
+import com.yandex.mapkit.geometry.BoundingBox;
+import com.yandex.mapkit.geometry.BoundingBoxHelper;
 import com.yandex.mapkit.geometry.Point;
+import com.yandex.mapkit.geometry.Polyline;
 import com.yandex.mapkit.map.PlacemarkMapObject;
 
 import java.util.ArrayList;
@@ -130,29 +133,12 @@ public class ClusterAnimator {
     }
 
     public static Point calcCenter(@NonNull List<Point> points) {
-        int length = points.size();
-        double x = 0, y = 0, z = 0;
-        for (Point point : points) {
-            double lat = point.getLatitude();
-            double lng = point.getLongitude();
-            lat = Math.toRadians(lat);
-            lng = Math.toRadians(lng);
-            x += Math.cos(lat) * Math.cos(lng);
-            y += Math.cos(lat) * Math.sin(lng);
-            z += Math.sin(lat);
-        }
-
-        x /= length;
-        y /= length;
-        z /= length;
-
-        double longitude = Math.atan2(y, x);
-        double hypot = Math.hypot(x, y);
-        double latitude = Math.atan2(z, hypot);
-
-        latitude = Math.toDegrees(latitude);
-        longitude = Math.toDegrees(longitude);
-        return new Point(latitude, longitude);
+        BoundingBox boundingBox = BoundingBoxHelper.getBounds(new Polyline(points));
+        Point northEast = boundingBox.getNorthEast();
+        Point southWest = boundingBox.getSouthWest();
+        return new Point(
+                (northEast.getLatitude() + southWest.getLatitude()) / 2,
+                (northEast.getLongitude() + southWest.getLongitude()) / 2);
     }
 
     private static void updateObjectGeometry(@NonNull PlacemarkMapObject placemarkMapObject, double lat, double lon) {
