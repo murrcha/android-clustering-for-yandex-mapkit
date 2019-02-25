@@ -11,6 +11,7 @@ import java.util.Random;
 import androidx.annotation.NonNull;
 
 public class TestData {
+
     public static final int POINTS_COUNT = 100;
     @NonNull
     public static final Point POINT = new Point(56.863069, 53.219774);
