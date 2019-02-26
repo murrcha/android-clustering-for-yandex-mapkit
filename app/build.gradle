@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 28
@@ -23,6 +25,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation project(':cluster')
 
@@ -42,4 +45,7 @@ dependencies {
 
     // Основная библиотека MapKit.
     implementation 'com.yandex.android:mapkit:3.3.1'
+}
+repositories {
+    mavenCentral()
 }
