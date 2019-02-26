@@ -25,7 +25,11 @@ android {
 
 static def getMySecret(String property) {
     Properties props = new Properties()
-    props.load(new FileInputStream(new File('secret.properties')))
+    def file = new File('secret.properties')
+    if (!file.exists()) {
+        return null
+    }
+    props.load(new FileInputStream(file))
     return props[property]
 }
 
