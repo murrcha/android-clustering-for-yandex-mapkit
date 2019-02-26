@@ -1,6 +1,6 @@
 package com.a65apps.mapkitclustering
 
-import com.a65apps.mapkitcluster.ClusterAnimator
+import com.a65apps.clustering.yandex.ClusterAnimator
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
 import java.util.*

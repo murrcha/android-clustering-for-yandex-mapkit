@@ -1,4 +1,4 @@
-package com.a65apps.mapkitcluster;
+package com.a65apps.clustering.yandex;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

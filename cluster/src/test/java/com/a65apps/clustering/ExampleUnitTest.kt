@@ -1,4 +1,4 @@
-package com.a65apps.mapkitcluster
+package com.a65apps.clustering
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -8,6 +8,7 @@ import org.junit.Test
  * @see [Testing documentation](http://d.android.com/tools/testing)
  */
 class ExampleUnitTest {
+
     @Test
     fun addition_isCorrect() {
         assertEquals(4, (2 + 2).toLong())
