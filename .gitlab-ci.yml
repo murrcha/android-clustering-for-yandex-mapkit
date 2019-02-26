@@ -1,0 +1,74 @@
+before_script:
+- export ANDROID_HOME=/usr/local/share/android-sdk
+
+stages:
+- build
+- test
+- deploy
+
+buildDebug:
+  stage: build
+  script:
+  - ./gradlew assembleDebug
+  artifacts:
+    paths:
+    - app/build/outputs/
+  only:
+  - dev
+  - beta
+  - /^beta(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/
+  tags:
+  - android
+
+unitTestsDebug:
+  stage: test
+  script:
+  - ./gradlew testDebugUnitTest
+  artifacts:
+    paths:
+    - app/build/reports/tests/testDebugUnitTest/
+  only:
+  - dev
+  - beta
+  - /^beta(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/
+  - /^feature.*$/
+  - /^bugfix.*$/
+  - /^refactoring.*$/
+  tags:
+  - android
+
+buildRelease:
+  stage: build
+  script:
+  - ./gradlew assembleRelease
+  artifacts:
+    paths:
+    - app/build/outputs/
+  only:
+  - master
+  - /^v(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/
+  tags:
+  - android
+
+unitTestsRelease:
+  stage: test
+  script:
+  - ./gradlew testReleaseUnitTest
+  artifacts:
+    paths:
+    - app/build/reports/tests/testReleaseUnitTest/
+  only:
+  - master
+  - /^v(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/
+  tags:
+  - android
+
+#deployLib:
+#  stage: deploy
+#  script:
+#  # дописать скрипт для деплоя
+#  only:
+#  - dev
+#  - master
+#  tags:
+#  - android
