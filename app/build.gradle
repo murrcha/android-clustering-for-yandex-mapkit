@@ -24,7 +24,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation project(':cluster')
@@ -42,7 +41,4 @@ dependencies {
         exclude module: "support-v13"
     }
     annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.3.1"
-
-    // Основная библиотека MapKit.
-    implementation 'com.yandex.android:mapkit:3.3.1'
 }
