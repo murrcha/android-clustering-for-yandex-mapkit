@@ -14,13 +14,19 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField "String", "YANDEX_MAP_KIT_KEY", "\"97ce2d94-2dd4-4738-8106-ba9fff49e291\""
+            buildConfigField "String", "YANDEX_MAP_KIT_KEY", "\"${getMySecret('YANDEX_MAP_KIT_KEY')}\""
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+}
+
+static def getMySecret(String property) {
+    Properties props = new Properties()
+    props.load(new FileInputStream(new File('secret.properties')))
+    return props[property]
 }
 
 dependencies {
