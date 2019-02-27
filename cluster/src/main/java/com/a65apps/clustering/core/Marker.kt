@@ -1,12 +1,11 @@
 package com.a65apps.clustering.core
 
-class Marker(private val latLng: LatLng,
-             private val title: String?,
-             private val description: String?) : ClusterItem {
+class Marker(private val point: Point,
+             private val title: String,
+             private val description: String) : ClusterItem {
+    override fun position(): Point = point
 
-    override fun position(): LatLng = latLng
+    override fun title(): String = title
 
-    override fun title(): String? = title
-
-    override fun snippet(): String? = description
+    override fun snippet(): String = description
 }
