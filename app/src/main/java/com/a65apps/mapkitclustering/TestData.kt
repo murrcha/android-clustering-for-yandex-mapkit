@@ -7,6 +7,7 @@ import java.util.*
 
 object TestData {
     const val POINTS_COUNT = 100
+    const val MIN_CLUSTER_SIZE = 3
     val POINT = Point(56.863069, 53.219774)
     val POINTS_LIST: MutableList<Point> = ArrayList(1000)
     val CLUSTER_POINT_0: Point
