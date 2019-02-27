@@ -6,13 +6,13 @@ import com.a65apps.clustering.core.Point
 import com.a65apps.clustering.yandex.YandexCluster
 import com.a65apps.clustering.yandex.YandexItem
 import com.a65apps.clustering.yandex.toPoint
-import com.a65apps.clustering.yandex.view.ClusterImageProvider
+import com.a65apps.clustering.yandex.view.ClusterPinProvider
 import com.a65apps.clustering.yandex.view.YandexClusterRenderer
 import com.yandex.mapkit.MapKitFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var clusterImageProvider: ClusterImageProvider<YandexItem>
+    private lateinit var clusterPinProvider: ClusterPinProvider<YandexItem>
     private lateinit var clusterRenderer: YandexClusterRenderer<YandexItem>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,8 +22,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        clusterImageProvider = YandexClusterImageProvider(this)
-        clusterRenderer = YandexClusterRenderer(mapView.map, clusterImageProvider,
+        clusterPinProvider = MainClusterPinProvider(this)
+        clusterRenderer = YandexClusterRenderer(mapView.map, clusterPinProvider,
                 TestData.MIN_CLUSTER_SIZE)
     }
 
