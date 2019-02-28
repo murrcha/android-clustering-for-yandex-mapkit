@@ -6,15 +6,9 @@ import com.a65apps.clustering.core.Point
 data class YandexItem(val position: Point,
                       val title: String,
                       val snippet: String) : ClusterItem {
-    override fun position(): Point {
-        return position
-    }
+    override fun position() = position
 
-    override fun title(): String {
-        return title
-    }
+    override fun title() = title
 
-    override fun snippet(): String {
-        return snippet
-    }
+    override fun snippet() = snippet
 }

@@ -3,6 +3,7 @@ package com.a65apps.clustering.yandex.view
 import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.core.ClusterItem
 import com.a65apps.clustering.core.view.ClusterRenderer
+import com.a65apps.clustering.yandex.toPoint
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.Map
@@ -19,27 +20,22 @@ class YandexClusterRenderer<T : ClusterItem>(
     private val layer: MapObjectCollection = map.addMapObjectLayer(LAYER_NAME)
 
     companion object {
-        const val LAYER_NAME = "CLUSTER_NAME"
+        const val LAYER_NAME = "CLUSTER_LAYER"
     }
 
     override fun clusterChanged(clusters: Set<Cluster<T>>) {
+        val star: PinProvider = imageProvider.getX()
         clusters.forEach { cluster ->
-            var point: Point
-            var image: PinProvider
-            val star: PinProvider = imageProvider.getX()
             if (cluster.size() >= minClusterSize) {
-                point = Point(cluster.position().latitude,
-                        cluster.position().longitude)
-                image = imageProvider.get(cluster)
-                addPlacemark(layer, point, image.provider(), image.style())
-                addPlacemark(layer, point, star.provider(), star.style())
+                val point = cluster.position().toPoint()
+                val image = imageProvider.get(cluster)
+                addPlacemark(layer, point, image.provider(), image.style)
             } else {
                 cluster.items().forEach { clusterItem ->
-                    point = Point(clusterItem.position().latitude,
-                            clusterItem.position().longitude)
-                    image = imageProvider.get(clusterItem)
-                    addPlacemark(layer, point, image.provider(), image.style())
-                    addPlacemark(layer, point, star.provider(), star.style())
+                    val point = clusterItem.position().toPoint()
+                    val image = imageProvider.get(clusterItem)
+                    addPlacemark(layer, point, image.provider(), image.style)
+                    addPlacemark(layer, point, star.provider(), star.style)
                 }
             }
         }
