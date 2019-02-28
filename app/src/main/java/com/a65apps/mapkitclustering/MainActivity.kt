@@ -2,18 +2,15 @@ package com.a65apps.mapkitclustering
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.a65apps.clustering.core.Point
-import com.a65apps.clustering.yandex.YandexCluster
-import com.a65apps.clustering.yandex.YandexItem
-import com.a65apps.clustering.yandex.toPoint
+import com.a65apps.clustering.core.Marker
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
 import com.a65apps.clustering.yandex.view.YandexClusterRenderer
 import com.yandex.mapkit.MapKitFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var clusterPinProvider: ClusterPinProvider<YandexItem>
-    private lateinit var clusterRenderer: YandexClusterRenderer<YandexItem>
+    private lateinit var clusterPinProvider: ClusterPinProvider
+    private lateinit var clusterRenderer: YandexClusterRenderer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         MapKitFactory.setApiKey(BuildConfig.YANDEX_MAP_KIT_KEY)
@@ -40,11 +37,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showPoints() {
-        val items0 = mutableSetOf<YandexItem>()
-        val items1 = mutableSetOf<YandexItem>()
-        val difItems = mutableListOf<YandexItem>()
+        //todo решить, что делать с кодом (для Радика)
+        val items0 = mutableSetOf<Marker>()
+        val items1 = mutableSetOf<Marker>()
+        val difItems = mutableListOf<Marker>()
 
-        TestData.POINTS_LIST_0.forEach {
+        /*TestData.POINTS_LIST_0.forEach {
             items0.add(YandexItem(it.toPoint(), "", ""))
         }
         TestData.POINTS_LIST_1.forEach {
@@ -55,15 +53,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         clusterRenderer.clusterChanged(setOf(
-                YandexCluster(Point(TestData.CLUSTER_POINT_0.latitude,
+                YandexCluster(LatLng(TestData.CLUSTER_POINT_0.latitude,
                         TestData.CLUSTER_POINT_0.longitude),
                         items0),
-                YandexCluster(Point(TestData.CLUSTER_POINT_1.latitude,
+                YandexCluster(LatLng(TestData.CLUSTER_POINT_1.latitude,
                         TestData.CLUSTER_POINT_1.longitude),
                         items1),
-                YandexCluster(Point(TestData.CLUSTER_POINT_0.latitude,
+                YandexCluster(LatLng(TestData.CLUSTER_POINT_0.latitude,
                         TestData.CLUSTER_POINT_0.longitude),
-                        difItems)))
+                        difItems)))*/
     }
 
     override fun onStop() {
