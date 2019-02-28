@@ -8,8 +8,10 @@ import com.a65apps.clustering.core.ClusterItem
 import com.a65apps.clustering.yandex.YandexItem
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
 import com.a65apps.clustering.yandex.view.PinProvider
+import com.a65apps.mapkitclustering.view.ClusterPinView
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.runtime.image.ImageProvider
+import com.yandex.runtime.ui_view.ViewProvider
 
 class MainClusterPinProvider(context: Context) :
         ClusterPinProvider<YandexItem> {
@@ -19,9 +21,10 @@ class MainClusterPinProvider(context: Context) :
     private val pinIconStyle =
             IconStyle(PointF(0.5f, 1f), null, null,
                     null, null, null, null)
-    private val clusterResource: PinProvider =
+    private val clusterResource =
             PinProvider.from(ImageProvider.fromResource(context, R.drawable.cluster),
                     clusterIconStyle)
+    private val clusterView = ClusterPinView(context)
     private val pinResource =
             PinProvider.from(ImageProvider.fromResource(context, R.drawable.pin), pinIconStyle)
     @SuppressLint("PrivateResource")
@@ -29,7 +32,8 @@ class MainClusterPinProvider(context: Context) :
             PinProvider.from(ImageProvider.fromResource(context, R.drawable.abc_ic_star_black_16dp))
 
     override fun get(cluster: Cluster<YandexItem>): PinProvider {
-        return clusterResource
+        clusterView.setText(cluster.size().toString())
+        return PinProvider.from(ViewProvider(clusterView))
     }
 
     override fun get(clusterItem: ClusterItem): PinProvider {

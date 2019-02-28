@@ -40,19 +40,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showPoints() {
-        val items = mutableSetOf<YandexItem>()
+        val items0 = mutableSetOf<YandexItem>()
+        val items1 = mutableSetOf<YandexItem>()
         val difItems = mutableListOf<YandexItem>()
-        for (i in 0 until TestData.POINTS_COUNT) {
-            val point = TestData.POINTS_LIST.get(i).toPoint()
-            items.add(YandexItem(point, "", ""))
-            if (i < 2) {
-                difItems.add(YandexItem(point, "", ""))
-            }
+
+        TestData.POINTS_LIST_0.forEach {
+            items0.add(YandexItem(it.toPoint(), "", ""))
         }
+        TestData.POINTS_LIST_1.forEach {
+            items1.add(YandexItem(it.toPoint(), "", ""))
+        }
+        TestData.POINTS_LIST_DIF.forEach {
+            difItems.add(YandexItem(it.toPoint(), "", ""))
+        }
+
         clusterRenderer.clusterChanged(setOf(
                 YandexCluster(Point(TestData.CLUSTER_POINT_0.latitude,
                         TestData.CLUSTER_POINT_0.longitude),
-                        items),
+                        items0),
+                YandexCluster(Point(TestData.CLUSTER_POINT_1.latitude,
+                        TestData.CLUSTER_POINT_1.longitude),
+                        items1),
                 YandexCluster(Point(TestData.CLUSTER_POINT_0.latitude,
                         TestData.CLUSTER_POINT_0.longitude),
                         difItems)))
