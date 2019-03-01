@@ -27,16 +27,12 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         MapKitFactory.getInstance().onStart()
-        setUpMap()
+        mapView.onStart()
 
-        showPoints()
+        showTestPoints()
     }
 
-    private fun setUpMap() {
-        mapView.map.move(TestData.CAMERA_POSITION)
-    }
-
-    private fun showPoints() {
+    private fun showTestPoints() {
         //todo решить, что делать с кодом (для Радика)
         val items0 = mutableSetOf<Marker>()
         val items1 = mutableSetOf<Marker>()
@@ -62,9 +58,12 @@ class MainActivity : AppCompatActivity() {
                 YandexCluster(LatLng(TestData.CLUSTER_POINT_0.latitude,
                         TestData.CLUSTER_POINT_0.longitude),
                         difItems)))*/
+
+        mapView.map.move(TestData.CAMERA_POSITION)
     }
 
     override fun onStop() {
+        mapView.onStop()
         MapKitFactory.getInstance().onStop()
         super.onStop()
     }
