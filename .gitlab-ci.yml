@@ -27,13 +27,6 @@ unitTestsDebug:
   artifacts:
     paths:
     - app/build/reports/tests/testDebugUnitTest/
-  only:
-  - dev
-  - beta
-  - /^beta(?:(\d+)\.)?(?:(\d+)\.)?(\*|\d+)$/
-  - /^feature.*$/
-  - /^bugfix.*$/
-  - /^refactoring.*$/
   tags:
   - android
 
