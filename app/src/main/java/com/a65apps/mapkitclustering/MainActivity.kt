@@ -20,8 +20,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         clusterPinProvider = MainClusterPinProvider(this)
-        clusterRenderer = YandexClusterRenderer(mapView.map, clusterPinProvider,
-                TestData.MIN_CLUSTER_SIZE)
+        clusterRenderer = YandexClusterRenderer(mapView.map, clusterPinProvider)
     }
 
     override fun onStart() {
@@ -48,7 +47,7 @@ class MainActivity : AppCompatActivity() {
             difItems.add(YandexItem(it.toPoint(), "", ""))
         }
 
-        clusterRenderer.clusterChanged(setOf(
+        clusterRenderer.updateClusters(setOf(
                 YandexCluster(LatLng(TestData.CLUSTER_POINT_0.latitude,
                         TestData.CLUSTER_POINT_0.longitude),
                         items0),
