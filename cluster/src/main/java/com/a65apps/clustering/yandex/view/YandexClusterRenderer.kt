@@ -1,9 +1,7 @@
 package com.a65apps.clustering.yandex.view
 
-import com.a65apps.clustering.core.Cluster
-import com.a65apps.clustering.core.ClusterItem
+import com.a65apps.clustering.core.Clusters
 import com.a65apps.clustering.core.view.ClusterRenderer
-import com.a65apps.clustering.yandex.toPoint
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.Map
@@ -12,19 +10,20 @@ import com.yandex.runtime.image.AnimatedImageProvider
 import com.yandex.runtime.image.ImageProvider
 import com.yandex.runtime.ui_view.ViewProvider
 
-class YandexClusterRenderer<T : ClusterItem>(
+class YandexClusterRenderer(
         map: Map,
-        private val imageProvider: ClusterPinProvider<T>,
+        private val imageProvider: ClusterPinProvider,
         private val minClusterSize: Int)
-    : ClusterRenderer<T> {
+    : ClusterRenderer {
     private val layer: MapObjectCollection = map.addMapObjectLayer(LAYER_NAME)
 
     companion object {
         const val LAYER_NAME = "CLUSTER_LAYER"
     }
 
-    override fun clusterChanged(clusters: Set<Cluster<T>>) {
-        val star: PinProvider = imageProvider.getX()
+    override fun clusterChanged(clusters: Clusters) {
+        //todo доработать с weak reference
+        /*val star: PinProvider = imageProvider.getX()
         clusters.forEach { cluster ->
             if (cluster.size() >= minClusterSize) {
                 val point = cluster.position().toPoint()
@@ -38,7 +37,7 @@ class YandexClusterRenderer<T : ClusterItem>(
                     addPlacemark(layer, point, star.provider(), star.style)
                 }
             }
-        }
+        }*/
     }
 
     private fun addPlacemark(layer: MapObjectCollection,

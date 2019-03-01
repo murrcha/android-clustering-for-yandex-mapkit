@@ -1,10 +1,8 @@
 package com.a65apps.clustering.yandex.view
 
-import com.a65apps.clustering.core.Cluster
-import com.a65apps.clustering.core.ClusterItem
+import com.a65apps.clustering.core.Marker
 
-interface ClusterPinProvider<T : ClusterItem> {
-    fun get(cluster: Cluster<T>): PinProvider
-    fun get(clusterItem: ClusterItem): PinProvider
+interface ClusterPinProvider {
+    fun get(marker: Marker): PinProvider
     fun getX(): PinProvider
 }
