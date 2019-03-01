@@ -12,7 +12,7 @@ object MappersTest : Spek({
         val longitude = 53.219774
         val emptyValue = 0.0
 
-        describe("LatLng to Point)") {
+        describe("LatLng to Point") {
             val latLng = LatLng(latitude, longitude)
             val point = latLng.toPoint()
             it("returns Point") {
