@@ -1,6 +1,7 @@
 package com.a65apps.clustering.yandex.view
 
 import com.a65apps.clustering.core.Clusters
+import com.a65apps.clustering.core.Marker
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.IconStyle
@@ -13,7 +14,7 @@ import com.yandex.runtime.ui_view.ViewProvider
 class YandexClusterRenderer(
         map: Map,
         private val imageProvider: ClusterPinProvider,
-        private val minClusterSize: Int)
+        private var withAnimation: Boolean = false)
     : ClusterRenderer {
     private val layer: MapObjectCollection = map.addMapObjectLayer(LAYER_NAME)
 
@@ -21,7 +22,7 @@ class YandexClusterRenderer(
         const val LAYER_NAME = "CLUSTER_LAYER"
     }
 
-    override fun clusterChanged(clusters: Clusters) {
+    override fun updateClusters(clusters: Clusters) {
         //todo доработать с weak reference
         /*val star: PinProvider = imageProvider.getX()
         clusters.forEach { cluster ->
@@ -38,6 +39,9 @@ class YandexClusterRenderer(
                 }
             }
         }*/
+    }
+
+    override fun setMarkers(markers: Set<Marker>) {
     }
 
     private fun addPlacemark(layer: MapObjectCollection,
@@ -83,6 +87,7 @@ class YandexClusterRenderer(
     }
 
     override fun animation(withAnimation: Boolean) {
+        this.withAnimation = withAnimation
     }
 
     override fun onAdd() {
