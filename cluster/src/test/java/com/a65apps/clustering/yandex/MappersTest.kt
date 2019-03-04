@@ -1,6 +1,8 @@
 package com.a65apps.clustering.yandex
 
 import com.a65apps.clustering.core.LatLng
+import com.a65apps.clustering.yandex.extention.toLatLng
+import com.a65apps.clustering.yandex.extention.toPoint
 import com.yandex.mapkit.geometry.Point
 import org.assertj.core.api.Assertions.assertThat
 import org.spekframework.spek2.Spek

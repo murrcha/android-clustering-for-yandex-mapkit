@@ -11,7 +11,7 @@ import com.a65apps.clustering.core.quadtree.PointQuadTree
 import kotlin.math.sqrt
 
 private val PROJECTION = SphericalMercatorProjection(1.0)
-private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.1f
+private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
 
 /**
  * A simple clustering algorithm with O(nlog n) performance. Resulting clusters are not

@@ -15,8 +15,8 @@ object TestData {
     val CLUSTER_POINT_0: Point
     val CLUSTER_POINT_1: Point
     val CAMERA_POSITION: CameraPosition
-    const val MIN_LAT = 56.837725f
-    const val MAX_LAT = 56.866513f
+    const val MIN_LAT = 56.807725f
+    const val MAX_LAT = 56.896513f
     const val MIN_LON = 53.205989f
     const val MAX_LON = 53.233493f
 
@@ -28,7 +28,7 @@ object TestData {
             POINTS_LIST_0.add(Point(lat.toDouble(), lon.toDouble()))
         }
 
-        for (i in 0 until 9) {
+        for (i in 0 until 17) {
             val r = Random()
             val lat = MIN_LAT + r.nextFloat() * (MAX_LAT - MIN_LAT)
             val lon = MIN_LON + r.nextFloat() * (MAX_LON - MIN_LON)
