@@ -35,7 +35,8 @@ object ClusteredMarkerTest : Spek({
         }
 
         describe("marker with children") {
-            val cluster = ClusteredMarker(latLng, payload, setOf(marker))
+            val cluster = ClusteredMarker(latLng, payload)
+            cluster.rawMarkers.add(marker)
 
             it("returns is cluster true") {
                 assertThat(cluster.isCluster()).isTrue()

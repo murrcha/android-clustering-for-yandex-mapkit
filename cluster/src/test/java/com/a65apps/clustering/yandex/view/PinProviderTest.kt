@@ -21,6 +21,7 @@ object PinProviderTest : Spek({
             it("returns ImageProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ImageProvider::class.java)
+                assertThat(pinProvider.style).isNull()
             }
         }
 
@@ -29,6 +30,7 @@ object PinProviderTest : Spek({
             it("returns ImageProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ImageProvider::class.java)
+                assertThat(pinProvider.style).isEqualTo(iconStyle)
             }
         }
 
@@ -37,6 +39,7 @@ object PinProviderTest : Spek({
             it("returns ViewProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ViewProvider::class.java)
+                assertThat(pinProvider.style).isNull()
             }
         }
 
@@ -45,6 +48,7 @@ object PinProviderTest : Spek({
             it("returns ViewProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ViewProvider::class.java)
+                assertThat(pinProvider.style).isEqualTo(iconStyle)
             }
         }
 
@@ -53,6 +57,7 @@ object PinProviderTest : Spek({
             it("returns AnimatedImageProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(AnimatedImageProvider::class.java)
+                assertThat(pinProvider.style).isEqualTo(iconStyle)
             }
         }
     }
