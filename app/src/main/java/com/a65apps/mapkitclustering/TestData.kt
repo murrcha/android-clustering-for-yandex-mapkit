@@ -44,6 +44,6 @@ object TestData {
 
         CLUSTER_POINT_0 = ClusterAnimator.calcCenter(POINTS_LIST_0)
         CLUSTER_POINT_1 = ClusterAnimator.calcCenter(POINTS_LIST_1)
-        CAMERA_POSITION = CameraPosition(CLUSTER_POINT_0, 14.0f, 0.0f, 0.0f)
+        CAMERA_POSITION = CameraPosition(CLUSTER_POINT_0, 12.0f, 0.0f, 0.0f)
     }
 }

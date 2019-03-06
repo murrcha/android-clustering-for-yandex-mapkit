@@ -22,10 +22,10 @@ open class ClusterManager(private val renderer: ClusterRenderer,
 
     fun calculateClusters() {
         val newMarkers = updateClusters()
-        val actualClusterCount = getClustersCount(actualMarkers)
-        val newClusterCount = getClustersCount(newMarkers)
-        if (actualClusterCount != newClusterCount) {
-            callRenderer(newMarkers, newClusterCount < actualClusterCount)
+        val actualMarkersCount = actualMarkers.size
+        val newMarkerCount = newMarkers.size
+        if (actualMarkersCount != newMarkerCount) {
+            callRenderer(newMarkers, newMarkerCount < actualMarkersCount)
         }
     }
 
@@ -91,97 +91,43 @@ open class ClusterManager(private val renderer: ClusterRenderer,
         renderer.setMarkers(actualMarkers)
     }
 
-    private fun getClustersCount(markers: Set<Marker>): Int {
-        var count = 0
-        markers.forEach {
-            if (it.isCluster()) {
-                count++
-            }
-        }
-        return count
-    }
-
-    /*private fun buildTransitionMap(actualMarkers: Set<Marker>, newMarkers: Set<Marker>,
-                                   isCollapsed: Boolean): Map<Marker, Set<Marker>> {
+    private fun buildTransitionMap(actualMarkers: Set<Marker>,
+                                   newMarkers: Set<Marker>,
+                                   isCollapsing: Boolean): Map<Marker, Set<Marker>> {
         val transitionMap = mutableMapOf<Marker, Set<Marker>>()
-        val moreClusteredSet = if (isCollapsed) actualMarkers else newMarkers
-        val lessClusteredSet = if (isCollapsed) newMarkers else actualMarkers
-
-        for (item in moreClusteredSet) {
-            if (!item.isCluster()) {
+        val src = if (isCollapsing) newMarkers else actualMarkers
+        val dst = if (isCollapsing) actualMarkers else newMarkers
+        for (marker in dst) {
+            if (src.contains(marker)) {
                 continue
             }
-
-            val moreClusteredItem = item as ClusteredMarker
-            val itemsForCollapse = mutableSetOf<ClusteredMarker>()
-            lessClusteredSet.forEach {
-                val lessClusteredItem = it as ClusteredMarker
-                if (!lessClusteredItem.isCluster() && moreClusteredItem.rawMarkers.contains(
-                                lessClusteredItem)) {
-                    itemsForCollapse.add(lessClusteredItem)
-                }
-                if (lessClusteredItem.isCluster() && moreClusteredItem.rawMarkers.containsAll(
-                                lessClusteredItem.rawMarkers)) {
-                    itemsForCollapse.add(lessClusteredItem)
-                }
-            }
-
-            transitionMap[moreClusteredItem] = itemsForCollapse
-        }
-        return transitionMap
-    }*/
-
-    private fun buildTransitionMap(actualMarkers: Set<Marker>, newMarkers: Set<Marker>,
-                                   isCollapsed: Boolean): Map<Marker, Set<Marker>> {
-        return if (isCollapsed) {
-            buildCollapsedMap(actualMarkers, newMarkers)
-        } else {
-            buildExpandedMap(actualMarkers, newMarkers)
-        }
-    }
-
-    private fun buildExpandedMap(actualMarkers: Set<Marker>,
-                                 newMarkers: Set<Marker>): Map<Marker, Set<Marker>> {
-        val transitionMap = mutableMapOf<Marker, Set<Marker>>()
-
-        for (old in actualMarkers) {
-            if (!old.isCluster()) {
-                continue
-            }
-
-            val oldCluster = old as ClusteredMarker
-            val expandedItems = mutableSetOf<Marker>()
-            for (new in newMarkers) {
-                if (new.isCluster()) {
-                    continue
-                }
-                if (oldCluster.rawMarkers.contains(new)) {
-                    expandedItems.add(new)
-                }
-            }
-            if (expandedItems.isNotEmpty()) {
-                transitionMap[old] = expandedItems
+            val closest = findClosestCluster(marker, src)
+            closest?.let {
+                transitionMap[closest] = transitionMap[closest]?.plus(marker) ?: setOf(marker)
             }
         }
         return transitionMap
     }
 
-    private fun buildCollapsedMap(actualMarkers: Set<Marker>,
-                                  newMarkers: Set<Marker>): Map<Marker, Set<Marker>> {
-        val transitionMap = mutableMapOf<Marker, Set<Marker>>()
-
-        for (new in newMarkers) {
-            if (!new.isCluster()) {
-                continue
+    private fun findClosestCluster(marker: Marker, markers: Set<Marker>): Marker? {
+        var minDistance = Double.MAX_VALUE
+        var markerCandidate: Marker? = null
+        for (mapObjectMarker in markers) {
+            if (mapObjectMarker.isCluster()) {
+                val distance = distanceBetween(mapObjectMarker, marker)
+                if (markerCandidate == null || distance < minDistance) {
+                    minDistance = distance
+                    markerCandidate = mapObjectMarker
+                }
             }
-
-            val newCluster = new as ClusteredMarker
-            val collapsedItems = mutableSetOf<Marker>()
-            if (actualMarkers.containsAll(newCluster.rawMarkers)) {
-                collapsedItems.addAll(newCluster.rawMarkers)
-            }
-            transitionMap[newCluster] = collapsedItems
         }
-        return transitionMap
+        return markerCandidate
+    }
+
+    private fun distanceBetween(a: Marker, b: Marker): Double {
+        return (a.getGeoCoor().latitude - b.getGeoCoor().latitude) *
+                (a.getGeoCoor().latitude - b.getGeoCoor().latitude) +
+                (a.getGeoCoor().longitude - b.getGeoCoor().longitude) *
+                (a.getGeoCoor().longitude - b.getGeoCoor().longitude)
     }
 }

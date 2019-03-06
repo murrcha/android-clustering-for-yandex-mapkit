@@ -1,6 +1,6 @@
 package com.a65apps.clustering.yandex.extention
 
-import com.a65apps.clustering.core.Marker
+import com.a65apps.clustering.core.LatLng
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.MapObjectCollection
@@ -9,10 +9,10 @@ import com.yandex.runtime.image.AnimatedImageProvider
 import com.yandex.runtime.image.ImageProvider
 import com.yandex.runtime.ui_view.ViewProvider
 
-fun MapObjectCollection.addPlacemark(marker: Marker, provider: Any,
+fun MapObjectCollection.addPlacemark(coords: LatLng, provider: Any,
                                      iconStyle: IconStyle?)
         : PlacemarkMapObject {
-    val point = marker.getGeoCoor().toPoint()
+    val point = coords.toPoint()
     when (provider) {
         is ImageProvider -> return addPlacemark(point, provider, iconStyle)
         is ViewProvider -> return addPlacemark(point, provider, iconStyle)

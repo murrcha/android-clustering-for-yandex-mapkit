@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         val map = mapView.map
         clusterPinProvider = MainClusterPinProvider(this)
-        clusterManager = YandexClusterManager(YandexClusterRenderer(map, clusterPinProvider, false),
+        clusterManager = YandexClusterManager(YandexClusterRenderer(map, clusterPinProvider, true),
                 VisibleRectangularRegion(map.visibleRegion.topLeft.toLatLng(),
                         map.visibleRegion.bottomRight.toLatLng()))
         map.addCameraListener(clusterManager)
