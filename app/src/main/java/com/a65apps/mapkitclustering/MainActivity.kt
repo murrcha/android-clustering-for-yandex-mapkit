@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.a65apps.clustering.core.ClusteredMarker
 import com.a65apps.clustering.core.Marker
 import com.a65apps.clustering.core.VisibleRectangularRegion
+import com.a65apps.clustering.core.view.AnimationParams
 import com.a65apps.clustering.yandex.YandexClusterManager
 import com.a65apps.clustering.yandex.extention.toLatLng
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
@@ -25,7 +26,9 @@ class MainActivity : AppCompatActivity() {
 
         val map = mapView.map
         clusterPinProvider = MainClusterPinProvider(this)
-        clusterManager = YandexClusterManager(YandexClusterRenderer(map, clusterPinProvider, true),
+        clusterManager = YandexClusterManager(YandexClusterRenderer(map, clusterPinProvider,
+                AnimationParams(true, true, 260,
+                        null)),
                 VisibleRectangularRegion(map.visibleRegion.topLeft.toLatLng(),
                         map.visibleRegion.bottomRight.toLatLng()))
         map.addCameraListener(clusterManager)

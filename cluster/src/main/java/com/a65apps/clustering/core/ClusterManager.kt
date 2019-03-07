@@ -87,7 +87,6 @@ open class ClusterManager(private val renderer: ClusterRenderer,
         if (!isClear) {
             actualMarkers.addAll(updateClusters())
         }
-        //TODO выполнить метод renderer'а setMarkers(actualMarkers)
         renderer.setMarkers(actualMarkers)
     }
 

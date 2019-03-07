@@ -6,7 +6,7 @@ import com.a65apps.clustering.core.Marker
 interface ClusterRenderer {
     fun updateClusters(clusters: Clusters)
     fun setMarkers(markers: Set<Marker>)
-    fun animation(withAnimation: Boolean)
+    fun animation(animationParams: AnimationParams)
     fun onAdd()
     fun onRemove()
 }
