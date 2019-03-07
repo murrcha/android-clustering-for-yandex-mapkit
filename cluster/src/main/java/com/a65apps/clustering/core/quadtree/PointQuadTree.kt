@@ -3,7 +3,7 @@ package com.a65apps.clustering.core.quadtree
 import com.a65apps.clustering.core.geometry.Bounds
 import com.a65apps.clustering.core.geometry.Point
 
-private const val MAX_ELEMENTS = 50
+private const val MAX_ELEMENTS = 500
 private const val MAX_DEPTH = 40
 
 /**

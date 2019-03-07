@@ -28,7 +28,7 @@ object TestData {
             POINTS_LIST_0.add(Point(lat.toDouble(), lon.toDouble()))
         }
 
-        for (i in 0 until 17) {
+        for (i in 0 until 117) {
             val r = Random()
             val lat = MIN_LAT + r.nextFloat() * (MAX_LAT - MIN_LAT)
             val lon = MIN_LON + r.nextFloat() * (MAX_LON - MIN_LON)

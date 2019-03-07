@@ -22,7 +22,6 @@ class YandexClusterRenderer(
     : ClusterRenderer {
     private val layer: MapObjectCollection = map.addMapObjectLayer(LAYER_NAME)
     private val mapObjects = mutableMapOf<Marker, PlacemarkMapObject>()
-    private var animation: ValueAnimator? = null
 
     companion object {
         const val LAYER_NAME = "CLUSTER_LAYER"
@@ -80,7 +79,6 @@ class YandexClusterRenderer(
 
     //Перемещение маркеров в кластер с анимацией
     private fun animateMarkersToCluster(cluster: Marker, markers: Set<Marker>) {
-        animation?.end()
         //коллекция маркеров которые будут анимироваться в кластер
         val movedMarkers = mutableListOf<PlacemarkMapObject>()
         val startCoordinates = mutableListOf<LatLng>()
@@ -113,7 +111,6 @@ class YandexClusterRenderer(
                 removePlacemarks(markers)
                 animator.removeUpdateListener(animatorUpdateListener)
                 animator.removeListener(this)
-                animation = null
             }
 
             override fun onAnimationStart(animation: Animator?) {
@@ -143,7 +140,6 @@ class YandexClusterRenderer(
 
     //Перемещение маркеров из кластера с анимацией
     private fun animateClusterToMarkers(cluster: Marker, markers: Set<Marker>) {
-        animation?.end()
         removePlacemark(cluster)
         //коллекция маркеров которые будут анимироваться в кластер
         val movedMarkers = mutableListOf<PlacemarkMapObject>()
@@ -171,7 +167,6 @@ class YandexClusterRenderer(
             override fun onAnimationEnd(anim: Animator?) {
                 animator.removeUpdateListener(animatorUpdateListener)
                 animator.removeListener(this)
-                animation = null
             }
         })
         animationParams.interpolator?.let {
