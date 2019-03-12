@@ -31,7 +31,7 @@ data class ClusteredMarker(private val geoCoor: LatLng, private val payload: Any
 
         if (geoCoor != other.geoCoor) return false
         if (payload != other.payload) return false
-        if (rawMarkers != other.rawMarkers) return false
+        if (rawMarkers != rawMarkers) return false
 
         return true
     }

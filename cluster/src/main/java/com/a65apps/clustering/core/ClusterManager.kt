@@ -26,10 +26,10 @@ open class ClusterManager(private val renderer: ClusterRenderer,
 
     fun calculateClusters() {
         val newMarkers = updateClusters()
-        val actualMarkersCount = actualMarkers.size
-        val newMarkerCount = newMarkers.size
+        val actualMarkersCount = clusterCount(actualMarkers)
+        val newMarkerCount = clusterCount(newMarkers)
         if (actualMarkersCount != newMarkerCount) {
-            callRenderer(newMarkers, newMarkerCount < actualMarkersCount)
+            callRenderer(newMarkers, newMarkers.size <= actualMarkers.size)
         }
     }
 
@@ -85,13 +85,13 @@ open class ClusterManager(private val renderer: ClusterRenderer,
         }
     }
 
-    private fun callRenderer(newMarkers: Set<Marker>, isCollapsed: Boolean) {
-        var clusters: Clusters
+    private fun callRenderer(newMarkers: Set<Marker>, isCollapsing: Boolean) {
+        val clusters: Clusters
         clusters = if (actualMarkers.isNotEmpty()) {
-            val transitionMap = buildTransitionMap(actualMarkers, newMarkers, isCollapsed)
-            Clusters(actualMarkers, newMarkers, transitionMap, isCollapsed)
+            val transitionMap = buildTransitionMap(actualMarkers, newMarkers, isCollapsing)
+            Clusters(actualMarkers, newMarkers, transitionMap, isCollapsing)
         } else {
-            Clusters(actualMarkers, newMarkers, emptyMap(), isCollapsed)
+            Clusters(actualMarkers, newMarkers, emptyMap(), isCollapsing)
         }
         renderer.updateClusters(clusters)
         actualMarkers.clear()
@@ -149,5 +149,15 @@ open class ClusterManager(private val renderer: ClusterRenderer,
                 (a.getGeoCoor().latitude - b.getGeoCoor().latitude) +
                 (a.getGeoCoor().longitude - b.getGeoCoor().longitude) *
                 (a.getGeoCoor().longitude - b.getGeoCoor().longitude)
+    }
+
+    private fun clusterCount(markers: Set<Marker>): Int {
+        var count = 0
+        for (marker in markers) {
+            if (marker.isCluster()) {
+                count++
+            }
+        }
+        return count
     }
 }

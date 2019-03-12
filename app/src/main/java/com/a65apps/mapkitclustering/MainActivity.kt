@@ -13,7 +13,7 @@ import com.a65apps.clustering.yandex.view.YandexClusterRenderer
 import com.yandex.mapkit.MapKitFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
-const val ANIMATION_DURATION = 1_200L
+const val ANIMATION_DURATION = 240L
 
 class MainActivity : AppCompatActivity() {
     private lateinit var clusterPinProvider: ClusterPinProvider
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showTestPoints() {
         val markers = mutableSetOf<Marker>()
-        TestData.POINTS_LIST_1.forEach {
+        TestData.POINTS_LIST.forEach {
             markers.add(ClusteredMarker(it.toLatLng(), null))
         }
         clusterManager.setMarkers(markers)

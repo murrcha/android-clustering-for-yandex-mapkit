@@ -3,8 +3,8 @@ package com.a65apps.clustering.core.quadtree
 import com.a65apps.clustering.core.geometry.Bounds
 import com.a65apps.clustering.core.geometry.Point
 
-private const val MAX_ELEMENTS = 500
-private const val MAX_DEPTH = 40
+private const val MAX_ELEMENTS = 5000
+private const val MAX_DEPTH = 100
 
 /**
  * A quad tree which tracks items with a Point geometry.
