@@ -15,18 +15,29 @@ import com.a65apps.clustering.yandex.extention.addPlacemark
 import com.a65apps.clustering.yandex.extention.toLatLng
 import com.a65apps.clustering.yandex.extention.toPoint
 import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.map.*
 import com.yandex.mapkit.map.Map
-import com.yandex.mapkit.map.MapObjectCollection
-import com.yandex.mapkit.map.PlacemarkMapObject
 
 class YandexClusterRenderer(map: Map,
                             private val imageProvider: ClusterPinProvider,
+                            private val tapListener: TapListener,
                             private var animationParams: AnimationParams,
                             name: String = "CLUSTER_LAYER")
     : ClusterRenderer {
     private val layer: MapObjectCollection = map.addMapObjectLayer(name)
     private val mapObjects = mutableMapOf<Marker, PlacemarkMapObject>()
     private var clusterAnimator: AnimatorSet = AnimatorSet()
+    private val mapObjectTapListener = object : MapObjectTapListener {
+        override fun onMapObjectTap(mapObject: MapObject, point: Point): Boolean {
+            for ((marker, markerMapObject) in mapObjects) {
+                if (mapObject == markerMapObject) {
+                    tapListener.markerTapped(marker, markerMapObject)
+                    return true
+                }
+            }
+            return false
+        }
+    }
 
     override fun updateClusters(clusters: Clusters) {
         if (mapObjects.isEmpty() || !animationParams.animationEnabled) {
@@ -251,6 +262,7 @@ class YandexClusterRenderer(map: Map,
         removePlacemark(marker)
         val image = imageProvider.get(marker)
         val placemark = layer.addPlacemark(coords, image.provider(), image.style)
+        placemark.addTapListener(mapObjectTapListener)
         mapObjects[marker] = placemark
         return placemark
     }

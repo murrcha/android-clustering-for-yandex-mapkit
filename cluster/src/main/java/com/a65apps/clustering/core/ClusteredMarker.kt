@@ -42,4 +42,12 @@ data class ClusteredMarker(private val geoCoor: LatLng, private val payload: Any
         result = 31 * result + rawMarkers.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return if (isCluster()) {
+            "CLUSTER \ncoords: ${getGeoCoor()} \ncount: ${getChildrenCount()} \npayload: ${getPayload()}"
+        } else {
+            "PIN \ncoords: ${getGeoCoor()} \npayload: ${getPayload()}}"
+        }
+    }
 }
