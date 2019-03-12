@@ -15,17 +15,13 @@ import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.map.MapObjectCollection
 import com.yandex.mapkit.map.PlacemarkMapObject
 
-class YandexClusterRenderer(
-        map: Map,
-        private val imageProvider: ClusterPinProvider,
-        private var animationParams: AnimationParams)
+class YandexClusterRenderer(map: Map,
+                            private val imageProvider: ClusterPinProvider,
+                            private var animationParams: AnimationParams,
+                            name: String = "CLUSTER_LAYER")
     : ClusterRenderer {
-    private val layer: MapObjectCollection = map.addMapObjectLayer(LAYER_NAME)
+    private val layer: MapObjectCollection = map.addMapObjectLayer(name)
     private val mapObjects = mutableMapOf<Marker, PlacemarkMapObject>()
-
-    companion object {
-        const val LAYER_NAME = "CLUSTER_LAYER"
-    }
 
     override fun updateClusters(clusters: Clusters) {
         if (clusters.actualMarkers.isEmpty()) {
@@ -189,11 +185,9 @@ class YandexClusterRenderer(
 
     private fun removePlacemark(marker: Marker) {
         mapObjects[marker]?.let {
-            try {
+            if (it.isValid) {
                 layer.remove(it)
                 mapObjects.remove(marker)
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -212,11 +206,9 @@ class YandexClusterRenderer(
 
     private fun updateObjectGeometry(mapObject: PlacemarkMapObject, point: Point,
                                      opacity: Float = 1f) {
-        try {
+        if (mapObject.isValid) {
             mapObject.geometry = point
             mapObject.opacity = opacity
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 }

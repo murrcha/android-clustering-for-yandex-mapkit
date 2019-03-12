@@ -3,6 +3,10 @@ package com.a65apps.clustering.core
 import com.a65apps.clustering.core.algorithm.Algorithm
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.core.view.ClusterRenderer
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 open class ClusterManager(private val renderer: ClusterRenderer,
@@ -70,13 +74,25 @@ open class ClusterManager(private val renderer: ClusterRenderer,
     }
 
     private fun updateClusters(): Set<Marker> {
-        //TODO выполнить в рабочем потоке!
-        return algorithm.calculate(visibleRectangularRegion)
+        return runBlocking {
+            updateClustersAsync().await()
+        }
+    }
+
+    private fun updateClustersAsync(): Deferred<Set<Marker>> {
+        return GlobalScope.async {
+            algorithm.calculate(visibleRectangularRegion)
+        }
     }
 
     private fun callRenderer(newMarkers: Set<Marker>, isCollapsed: Boolean) {
-        val transitionMap = buildTransitionMap(actualMarkers, newMarkers, isCollapsed)
-        val clusters = Clusters(actualMarkers, newMarkers, transitionMap, isCollapsed)
+        var clusters: Clusters
+        clusters = if (actualMarkers.isNotEmpty()) {
+            val transitionMap = buildTransitionMap(actualMarkers, newMarkers, isCollapsed)
+            Clusters(actualMarkers, newMarkers, transitionMap, isCollapsed)
+        } else {
+            Clusters(actualMarkers, newMarkers, emptyMap(), isCollapsed)
+        }
         renderer.updateClusters(clusters)
         actualMarkers.clear()
         actualMarkers.addAll(newMarkers)
@@ -101,17 +117,19 @@ open class ClusterManager(private val renderer: ClusterRenderer,
                 continue
             }
             val closest = findClosestCluster(marker, src)
-            closest?.let {
-                transitionMap[closest] = transitionMap[closest]?.plus(marker) ?: setOf(marker)
-            }
+            transitionMap[closest] = transitionMap[closest]?.plus(marker) ?: setOf(marker)
         }
         return transitionMap
     }
 
-    private fun findClosestCluster(marker: Marker, markers: Set<Marker>): Marker? {
+    private fun findClosestCluster(marker: Marker, markers: Set<Marker>): Marker {
         var minDistance = Double.MAX_VALUE
         var markerCandidate: Marker? = null
+        var firstMarker: Marker? = null
         for (mapObjectMarker in markers) {
+            if (firstMarker == null) {
+                firstMarker = mapObjectMarker
+            }
             if (mapObjectMarker.isCluster()) {
                 val distance = distanceBetween(mapObjectMarker, marker)
                 if (markerCandidate == null || distance < minDistance) {
@@ -120,7 +138,10 @@ open class ClusterManager(private val renderer: ClusterRenderer,
                 }
             }
         }
-        return markerCandidate
+        if (markerCandidate == null) {
+            markerCandidate = firstMarker
+        }
+        return markerCandidate!!
     }
 
     private fun distanceBetween(a: Marker, b: Marker): Double {

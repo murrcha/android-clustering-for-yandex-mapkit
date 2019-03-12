@@ -143,7 +143,7 @@ class PointQuadTree<T : PointQuadTree.Item>(private val bounds: Bounds, private 
             for (quad in children) {
                 quad.search(searchBounds, results)
             }
-        } else {
+        } else if (items.isNotEmpty()) {
             if (searchBounds.contains(bounds)) {
                 results.addAll(items)
             } else {

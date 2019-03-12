@@ -13,6 +13,8 @@ import com.a65apps.clustering.yandex.view.YandexClusterRenderer
 import com.yandex.mapkit.MapKitFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
+const val ANIMATION_DURATION = 1_200L
+
 class MainActivity : AppCompatActivity() {
     private lateinit var clusterPinProvider: ClusterPinProvider
     private lateinit var clusterManager: YandexClusterManager
@@ -26,9 +28,9 @@ class MainActivity : AppCompatActivity() {
 
         val map = mapView.map
         clusterPinProvider = MainClusterPinProvider(this)
-        clusterManager = YandexClusterManager(YandexClusterRenderer(map, clusterPinProvider,
-                AnimationParams(true, true, 260,
-                        null)),
+        clusterManager = YandexClusterManager(YandexClusterRenderer(
+                map, clusterPinProvider, AnimationParams(
+                true, true, ANIMATION_DURATION, null)),
                 VisibleRectangularRegion(map.visibleRegion.topLeft.toLatLng(),
                         map.visibleRegion.bottomRight.toLatLng()))
         map.addCameraListener(clusterManager)
@@ -48,8 +50,6 @@ class MainActivity : AppCompatActivity() {
             markers.add(ClusteredMarker(it.toLatLng(), null))
         }
         clusterManager.setMarkers(markers)
-        clusterManager.calculateClusters()
-
         mapView.map.move(TestData.CAMERA_POSITION)
     }
 

@@ -1,9 +1,7 @@
 package com.a65apps.clustering.core.algorithm
 
-import com.a65apps.clustering.core.ClusteredMarker
-import com.a65apps.clustering.core.LatLng
-import com.a65apps.clustering.core.Marker
-import com.a65apps.clustering.core.VisibleRectangularRegion
+import android.util.Log
+import com.a65apps.clustering.core.*
 import com.a65apps.clustering.core.geometry.Bounds
 import com.a65apps.clustering.core.geometry.Point
 import com.a65apps.clustering.core.projection.SphericalMercatorProjection
@@ -115,8 +113,15 @@ class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
                 visitedCandidates.addAll(clusterItems)
             }
 
-            resultingQuadItems.forEach { resultingMarkers.add(it.marker) }
+            resultingQuadItems.forEach {
+                if (it.marker.isCluster()) {
+                    resultingMarkers.add(it.marker)
+                } else {
+                    resultingMarkers.addAll(it.marker.childrens())
+                }
+            }
         }
+        Log.d("MARKER", "ALGORITHM PINS COUNT ${Markers.count(resultingMarkers)}")
         return resultingMarkers
     }
 

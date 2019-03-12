@@ -61,6 +61,7 @@ ext {
     mockitoVersion = "2.24.5"
     spekVersion = "2.0.1"
     testRunnerVersion = "1.0.2"
+    coroutines = "1.1.1"
 }
 
 dependencies {
@@ -79,4 +80,5 @@ dependencies {
 
     api "com.yandex.android:mapkit:$mapkitVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines"
 }
