@@ -34,6 +34,8 @@ class MainActivity : AppCompatActivity() {
         clusterPinProvider = MainClusterPinProvider(this)
         clusterManager = YandexClusterManager(YandexClusterRenderer(map,
                 clusterPinProvider,
+                AnimationParams(true, true,
+                        ANIMATION_DURATION, null),
                 object : TapListener {
                     override fun markerTapped(marker: Marker, mapObject: PlacemarkMapObject) {
                         toast?.cancel()
@@ -41,9 +43,7 @@ class MainActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT)
                         toast?.show()
                     }
-                },
-                AnimationParams(true, true,
-                        ANIMATION_DURATION, null)),
+                }),
                 VisibleRectangularRegion(map.visibleRegion.topLeft.toLatLng(),
                         map.visibleRegion.bottomRight.toLatLng()))
         map.addCameraListener(clusterManager)

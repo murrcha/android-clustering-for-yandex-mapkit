@@ -3,14 +3,14 @@ package com.a65apps.clustering.core
 import com.a65apps.clustering.core.algorithm.Algorithm
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.core.view.ClusterRenderer
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 open class ClusterManager(private val renderer: ClusterRenderer,
                           private var visibleRectangularRegion: VisibleRectangularRegion) {
+    init {
+        renderer.onAdd()
+    }
+
     private var actualMarkers: MutableSet<Marker> = mutableSetOf()
 
     private var algorithm: Algorithm = NonHierarchicalDistanceBasedAlgorithm()
@@ -25,12 +25,21 @@ open class ClusterManager(private val renderer: ClusterRenderer,
     }
 
     fun calculateClusters() {
+        val diffs = calcDiffs()
+        diffs?.let {
+            callRenderer(diffs)
+        }
+    }
+
+    private fun calcDiffs(): ClustersDiff? {
         val newMarkers = updateClusters()
         val actualMarkersCount = clusterCount(actualMarkers)
         val newMarkerCount = clusterCount(newMarkers)
+        val isCollapsing = newMarkers.size <= actualMarkers.size
         if (actualMarkersCount != newMarkerCount) {
-            callRenderer(newMarkers, newMarkers.size <= actualMarkers.size)
+            return buildTransitionMap(actualMarkers, newMarkers, isCollapsing)
         }
+        return null
     }
 
     fun clearMarkers() {
@@ -74,28 +83,13 @@ open class ClusterManager(private val renderer: ClusterRenderer,
     }
 
     private fun updateClusters(): Set<Marker> {
-        return runBlocking {
-            updateClustersAsync().await()
-        }
+        return algorithm.calculate(visibleRectangularRegion)
     }
 
-    private fun updateClustersAsync(): Deferred<Set<Marker>> {
-        return GlobalScope.async {
-            algorithm.calculate(visibleRectangularRegion)
-        }
-    }
-
-    private fun callRenderer(newMarkers: Set<Marker>, isCollapsing: Boolean) {
-        val clusters: Clusters
-        clusters = if (actualMarkers.isNotEmpty()) {
-            val transitionMap = buildTransitionMap(actualMarkers, newMarkers, isCollapsing)
-            Clusters(actualMarkers, newMarkers, transitionMap, isCollapsing)
-        } else {
-            Clusters(actualMarkers, newMarkers, emptyMap(), isCollapsing)
-        }
-        renderer.updateClusters(clusters)
+    private fun callRenderer(diffs: ClustersDiff) {
+        renderer.updateClusters(diffs)
         actualMarkers.clear()
-        actualMarkers.addAll(newMarkers)
+        actualMarkers.addAll(diffs.newMarkers)
     }
 
     private fun onModifyRawMarkers(isClear: Boolean) {
@@ -108,8 +102,11 @@ open class ClusterManager(private val renderer: ClusterRenderer,
 
     private fun buildTransitionMap(actualMarkers: Set<Marker>,
                                    newMarkers: Set<Marker>,
-                                   isCollapsing: Boolean): Map<Marker, Set<Marker>> {
+                                   isCollapsing: Boolean): ClustersDiff {
         val transitionMap = mutableMapOf<Marker, Set<Marker>>()
+        if (actualMarkers.isEmpty() || newMarkers.isEmpty()) {
+            return ClustersDiff(actualMarkers, newMarkers, transitionMap, isCollapsing)
+        }
         val src = if (isCollapsing) newMarkers else actualMarkers
         val dst = if (isCollapsing) actualMarkers else newMarkers
         for (marker in dst) {
@@ -119,7 +116,7 @@ open class ClusterManager(private val renderer: ClusterRenderer,
             val closest = findClosestCluster(marker, src)
             transitionMap[closest] = transitionMap[closest]?.plus(marker) ?: setOf(marker)
         }
-        return transitionMap
+        return ClustersDiff(actualMarkers, newMarkers, transitionMap, isCollapsing)
     }
 
     private fun findClosestCluster(marker: Marker, markers: Set<Marker>): Marker {
