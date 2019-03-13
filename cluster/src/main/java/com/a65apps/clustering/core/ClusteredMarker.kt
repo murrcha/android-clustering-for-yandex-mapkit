@@ -19,7 +19,7 @@ data class ClusteredMarker(private val geoCoor: LatLng, private val payload: Any
 
     override fun getPayload(): Any? = payload
 
-    override fun isCluster(): Boolean = rawMarkers.size > 5
+    override fun isCluster(): Boolean = rawMarkers.size > 3
 
     override fun getChildrenCount(): Int = rawMarkers.size
 

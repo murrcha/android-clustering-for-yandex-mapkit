@@ -66,7 +66,7 @@ class YandexClusterRenderer(map: Map,
                 override fun onAnimationEnd(animation: Animator?) {
                     //TODO: убрать логирование
                     //--------------------------
-                    val expectedPinCount = 717
+                    val expectedPinCount = 117
                     val markersCount = Markers.count(mapObjects.keys)
                     Log.d("MARKER", "RENDERER CLUSTER COUNT ${mapObjects.size}")
                     Log.d("MARKER", "RENDERER PINS COUNT BEFORE CHECKING $markersCount")

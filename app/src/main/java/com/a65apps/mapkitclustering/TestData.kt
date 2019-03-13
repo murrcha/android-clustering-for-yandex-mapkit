@@ -16,7 +16,7 @@ object TestData {
     const val MAX_LON = 53.233493f
 
     init {
-        for (i in 0 until 717) {
+        for (i in 0 until 117) {
             val r = Random()
             val lat = MIN_LAT + r.nextFloat() * (MAX_LAT - MIN_LAT)
             val lon = MIN_LON + r.nextFloat() * (MAX_LON - MIN_LON)

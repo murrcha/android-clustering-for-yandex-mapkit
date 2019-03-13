@@ -24,7 +24,7 @@ private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
  * <p/>
  * Clusters have the center of the first element (not the centroid of the items within it).
  */
-class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
+class NonHierarchicalDistanceBasedAlgorithm : Algorithm<VisibleRectangularRegion> {
 
     private var ratioForClustering = DEFAULT_RATIO_FOR_CLUSTERING
 
@@ -65,8 +65,8 @@ class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
         }
     }
 
-    override fun calculate(visibleRectangularRegion: VisibleRectangularRegion): Set<Marker> {
-        val zoomSpecificSpan = getZoomSpecificSpan(visibleRectangularRegion)
+    override fun calculate(parameter: VisibleRectangularRegion): Set<Marker> {
+        val zoomSpecificSpan = getZoomSpecificSpan(parameter)
 
         val visitedCandidates = mutableSetOf<QuadItem>()
         val resultingQuadItems = mutableSetOf<QuadItem>()

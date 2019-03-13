@@ -1,24 +1,18 @@
 package com.a65apps.clustering.core
 
-import android.os.Looper
-import android.util.Log
 import com.a65apps.clustering.core.algorithm.Algorithm
-import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.core.view.ClusterRenderer
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
-open class ClusterManager(private val renderer: ClusterRenderer,
-                          private var visibleRectangularRegion: VisibleRectangularRegion) {
+open class ClusterManager<P>(private val renderer: ClusterRenderer,
+                             private var algorithm: Algorithm<P>,
+                             private var parameter: P) {
     init {
         renderer.onAdd()
     }
 
     private var actualMarkers: MutableSet<Marker> = mutableSetOf()
-
-    private var algorithm: Algorithm = NonHierarchicalDistanceBasedAlgorithm()
     private val algorithmLock = ReentrantReadWriteLock()
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private var calculateJob: Job? = null
@@ -26,8 +20,8 @@ open class ClusterManager(private val renderer: ClusterRenderer,
     fun getNewMarker(geoCoor: LatLng, payload: Any? = null): Marker =
             ClusteredMarker(geoCoor, payload)
 
-    fun calculateClusters(visibleRectangularRegion: VisibleRectangularRegion) {
-        this.visibleRectangularRegion = visibleRectangularRegion
+    fun calculateClusters(parameter: P) {
+        this.parameter = parameter
         calculateJob?.cancel()
         calculateJob = calculateClusters()
     }
@@ -42,16 +36,17 @@ open class ClusterManager(private val renderer: ClusterRenderer,
     }
 
     private suspend fun calcDiffs(): ClustersDiff? {
-        return suspendCoroutine {
+        return coroutineScope {
             val newMarkers = updateClusters()
-            val actualMarkersCount = clusterCount(actualMarkers)
-            val newMarkerCount = clusterCount(newMarkers)
+            val actualClusterCount = clusterCount(actualMarkers)
+            val newClusterCount = clusterCount(newMarkers)
             val isCollapsing = newMarkers.size <= actualMarkers.size
             var diffs: ClustersDiff? = null
-            if (actualMarkersCount != newMarkerCount) {
+            if (actualClusterCount != newClusterCount ||
+                    actualMarkers.size != newMarkers.size) {
                 diffs = buildTransitionMap(actualMarkers, newMarkers, isCollapsing)
             }
-            it.resume(diffs)
+            diffs
         }
     }
 
@@ -96,7 +91,7 @@ open class ClusterManager(private val renderer: ClusterRenderer,
     }
 
     private fun updateClusters(): Set<Marker> {
-        return algorithm.calculate(visibleRectangularRegion)
+        return algorithm.calculate(parameter)
     }
 
     private fun callRenderer(diffs: ClustersDiff) {

@@ -38,10 +38,6 @@ object ClusteredMarkerTest : Spek({
             val cluster = ClusteredMarker(latLng, payload)
             cluster.rawMarkers.add(marker)
 
-            it("returns is cluster true") {
-                assertThat(cluster.isCluster()).isTrue()
-            }
-
             it("returns children count > 0") {
                 assertThat(cluster.getChildrenCount()).isGreaterThan(0)
             }
