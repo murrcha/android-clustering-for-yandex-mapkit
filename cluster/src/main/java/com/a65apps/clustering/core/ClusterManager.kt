@@ -1,9 +1,14 @@
 package com.a65apps.clustering.core
 
+import android.os.Looper
+import android.util.Log
 import com.a65apps.clustering.core.algorithm.Algorithm
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.core.view.ClusterRenderer
+import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 open class ClusterManager(private val renderer: ClusterRenderer,
                           private var visibleRectangularRegion: VisibleRectangularRegion) {
@@ -15,31 +20,39 @@ open class ClusterManager(private val renderer: ClusterRenderer,
 
     private var algorithm: Algorithm = NonHierarchicalDistanceBasedAlgorithm()
     private val algorithmLock = ReentrantReadWriteLock()
+    private val uiScope = CoroutineScope(Dispatchers.Main)
+    private var calculateJob: Job? = null
 
     fun getNewMarker(geoCoor: LatLng, payload: Any? = null): Marker =
             ClusteredMarker(geoCoor, payload)
 
     fun calculateClusters(visibleRectangularRegion: VisibleRectangularRegion) {
         this.visibleRectangularRegion = visibleRectangularRegion
-        calculateClusters()
+        calculateJob?.cancel()
+        calculateJob = calculateClusters()
     }
 
-    fun calculateClusters() {
-        val diffs = calcDiffs()
+    private fun calculateClusters() = uiScope.launch {
+        val diffs = withContext(Dispatchers.Default) {
+            calcDiffs()
+        }
         diffs?.let {
             callRenderer(diffs)
         }
     }
 
-    private fun calcDiffs(): ClustersDiff? {
-        val newMarkers = updateClusters()
-        val actualMarkersCount = clusterCount(actualMarkers)
-        val newMarkerCount = clusterCount(newMarkers)
-        val isCollapsing = newMarkers.size <= actualMarkers.size
-        if (actualMarkersCount != newMarkerCount) {
-            return buildTransitionMap(actualMarkers, newMarkers, isCollapsing)
+    private suspend fun calcDiffs(): ClustersDiff? {
+        return suspendCoroutine {
+            val newMarkers = updateClusters()
+            val actualMarkersCount = clusterCount(actualMarkers)
+            val newMarkerCount = clusterCount(newMarkers)
+            val isCollapsing = newMarkers.size <= actualMarkers.size
+            var diffs: ClustersDiff? = null
+            if (actualMarkersCount != newMarkerCount) {
+                diffs = buildTransitionMap(actualMarkers, newMarkers, isCollapsing)
+            }
+            it.resume(diffs)
         }
-        return null
     }
 
     fun clearMarkers() {
