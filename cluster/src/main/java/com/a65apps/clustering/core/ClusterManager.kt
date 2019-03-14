@@ -2,12 +2,14 @@ package com.a65apps.clustering.core
 
 import com.a65apps.clustering.core.algorithm.Algorithm
 import com.a65apps.clustering.core.view.ClusterRenderer
+import com.a65apps.clustering.core.view.RenderConfig
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-open class ClusterManager<P>(private val renderer: ClusterRenderer,
-                             private var algorithm: Algorithm<P>,
-                             private var parameter: P) {
+open class ClusterManager<P, in C : RenderConfig>(
+        private val renderer: ClusterRenderer<ClustersDiff, C>,
+        private var algorithm: Algorithm<P>,
+        private var parameter: P) : Manager {
     init {
         renderer.onAdd()
     }
@@ -50,7 +52,7 @@ open class ClusterManager<P>(private val renderer: ClusterRenderer,
         }
     }
 
-    fun clearMarkers() {
+    override fun clearMarkers() {
         algorithmLock.writeLock().lock()
         try {
             algorithm.clearMarkers()
@@ -60,7 +62,7 @@ open class ClusterManager<P>(private val renderer: ClusterRenderer,
         }
     }
 
-    fun setMarkers(markers: MutableSet<Marker>) {
+    override fun setMarkers(markers: Set<Marker>) {
         algorithmLock.writeLock().lock()
         try {
             algorithm.addMarkers(markers)
@@ -70,7 +72,7 @@ open class ClusterManager<P>(private val renderer: ClusterRenderer,
         }
     }
 
-    fun addMarker(marker: Marker) {
+    override fun addMarker(marker: Marker) {
         algorithmLock.writeLock().lock()
         try {
             algorithm.addMarker(marker)
@@ -80,10 +82,30 @@ open class ClusterManager<P>(private val renderer: ClusterRenderer,
         }
     }
 
-    fun removeMarker(marker: Marker) {
+    override fun removeMarker(marker: Marker) {
         algorithmLock.writeLock().lock()
         try {
             algorithm.removeMarker(marker)
+            onModifyRawMarkers(false)
+        } finally {
+            algorithmLock.writeLock().unlock()
+        }
+    }
+
+    override fun addMarkers(markers: Set<Marker>) {
+        algorithmLock.writeLock().lock()
+        try {
+            algorithm.addMarkers(markers)
+            onModifyRawMarkers(false)
+        } finally {
+            algorithmLock.writeLock().unlock()
+        }
+    }
+
+    override fun removeMarkers(markers: Set<Marker>) {
+        algorithmLock.writeLock().lock()
+        try {
+            algorithm.removeMarkers(markers)
             onModifyRawMarkers(false)
         } finally {
             algorithmLock.writeLock().unlock()
@@ -97,7 +119,7 @@ open class ClusterManager<P>(private val renderer: ClusterRenderer,
     private fun callRenderer(diffs: ClustersDiff) {
         renderer.updateClusters(diffs)
         actualMarkers.clear()
-        actualMarkers.addAll(diffs.newMarkers)
+        actualMarkers.addAll(diffs.newMarkers())
     }
 
     private fun onModifyRawMarkers(isClear: Boolean) {
