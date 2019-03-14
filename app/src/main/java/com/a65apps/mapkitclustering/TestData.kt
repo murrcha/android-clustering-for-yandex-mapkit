@@ -17,10 +17,14 @@ object TestData {
 
     init {
         for (i in 0 until 117) {
-            val r = Random()
-            val lat = MIN_LAT + r.nextFloat() * (MAX_LAT - MIN_LAT)
-            val lon = MIN_LON + r.nextFloat() * (MAX_LON - MIN_LON)
-            POINTS_LIST.add(Point(lat.toDouble(), lon.toDouble()))
+            POINTS_LIST.add(randomPoint())
         }
+    }
+
+    fun randomPoint(): Point {
+        val r = Random()
+        val lat = MIN_LAT + r.nextFloat() * (MAX_LAT - MIN_LAT)
+        val lon = MIN_LON + r.nextFloat() * (MAX_LON - MIN_LON)
+        return Point(lat.toDouble(), lon.toDouble())
     }
 }

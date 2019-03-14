@@ -58,6 +58,16 @@ class NonHierarchicalDistanceBasedAlgorithm : Algorithm<VisibleRectangularRegion
         }
     }
 
+    override fun removeMarkers(markers: Collection<Marker>) {
+        synchronized(quadTree) {
+            markers.forEach {
+                val quadItem = QuadItem(it as ClusteredMarker)
+                quadItems.remove(quadItem)
+                quadTree.remove(quadItem)
+            }
+        }
+    }
+
     override fun clearMarkers() {
         synchronized(quadTree) {
             quadItems.clear()

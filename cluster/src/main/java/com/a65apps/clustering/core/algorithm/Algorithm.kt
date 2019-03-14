@@ -7,6 +7,7 @@ interface Algorithm<P> {
     fun addMarkers(markers: Collection<Marker>)
     fun clearMarkers()
     fun removeMarker(marker: Marker)
+    fun removeMarkers(markers: Collection<Marker>)
     fun getMarkers(): Collection<Marker>
     fun calculate(parameter: P): Set<Marker>
     fun setRatioForClustering(value: Float)

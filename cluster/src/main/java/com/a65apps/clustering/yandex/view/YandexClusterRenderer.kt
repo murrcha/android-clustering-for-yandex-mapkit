@@ -5,10 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.util.Log
-import com.a65apps.clustering.core.ClustersDiff
-import com.a65apps.clustering.core.LatLng
-import com.a65apps.clustering.core.Marker
-import com.a65apps.clustering.core.Markers
+import com.a65apps.clustering.core.*
 import com.a65apps.clustering.core.view.AnimationParams
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.yandex.extention.addPlacemark
@@ -23,7 +20,7 @@ class YandexClusterRenderer(map: Map,
                             private var animationParams: AnimationParams,
                             private val mapObjectTapListener: TapListener? = null,
                             name: String = "CLUSTER_LAYER")
-    : ClusterRenderer {
+    : ClusterRenderer<ClustersDiff, AnimationParams> {
     private val layer: MapObjectCollection = map.addMapObjectLayer(name)
     private val mapObjects = mutableMapOf<Marker, PlacemarkMapObject>()
     private var clusterAnimator: AnimatorSet = AnimatorSet()
@@ -113,13 +110,15 @@ class YandexClusterRenderer(map: Map,
     }
 
     override fun setMarkers(markers: Set<Marker>) {
+        mapObjects.clear()
+        layer.clear()
         markers.forEach {
             createPlacemark(it)
         }
     }
 
-    override fun animation(animationParams: AnimationParams) {
-        this.animationParams = animationParams
+    override fun config(renderConfig: AnimationParams) {
+        this.animationParams = renderConfig
     }
 
     override fun onAdd() {
@@ -199,15 +198,6 @@ class YandexClusterRenderer(map: Map,
         removePlacemarks(markers)
     }
 
-    //Вызывается для перемещения маркеров из кластера
-    private fun clusterToMarkers(cluster: Marker, markers: Set<Marker>) {
-        if (animationParams.animationEnabled) {
-            animateClusterToMarkers(cluster, markers)
-        } else {
-            setClusterToMarkers(cluster, markers)
-        }
-    }
-
     //Перемещение маркеров из кластера с анимацией
     private fun animateClusterToMarkers(cluster: Marker, markers: Set<Marker>): Animator {
         removePlacemark(cluster)
@@ -245,12 +235,6 @@ class YandexClusterRenderer(map: Map,
             }
         })
         return animator
-    }
-
-    //Перемещение маркеров из кластера без анимации
-    private fun setClusterToMarkers(cluster: Marker, markers: Set<Marker>) {
-        removePlacemark(cluster)
-        markers.forEach { createPlacemark(it) }
     }
 
     private fun removePlacemarks(markers: Set<Marker>) {

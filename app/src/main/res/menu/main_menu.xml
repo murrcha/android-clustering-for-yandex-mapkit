@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/set_markers" android:title="Set markers"/>
+    <item android:id="@+id/clear_markers" android:title="Clear markers"/>
+    <item android:id="@+id/add_marker" android:title="Add one marker" />
+    <item android:id="@+id/remove_marker" android:title="Remove one marker" />
+    <item android:id="@+id/add_markers" android:title="Add 10 markers" />
+    <item android:id="@+id/remove_markers" android:title="Remove added markers" />
+</menu>
