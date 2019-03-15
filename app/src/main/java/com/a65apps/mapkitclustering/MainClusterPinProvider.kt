@@ -3,7 +3,7 @@ package com.a65apps.mapkitclustering
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PointF
-import com.a65apps.clustering.core.Marker
+import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
 import com.a65apps.clustering.yandex.view.PinProvider
 import com.a65apps.mapkitclustering.view.ClusterPinView
@@ -28,9 +28,9 @@ class MainClusterPinProvider(context: Context) : ClusterPinProvider {
     private val xResource =
             PinProvider.from(ImageProvider.fromResource(context, R.drawable.abc_ic_star_black_16dp))
 
-    override fun get(marker: Marker): PinProvider {
-        return if (marker.isCluster()) {
-            clusterView.setText(marker.getChildrenCount().toString())
+    override fun get(cluster: Cluster): PinProvider {
+        return if (cluster.isCluster()) {
+            clusterView.setText(cluster.size().toString())
             PinProvider.from(ViewProvider(clusterView))
         } else {
             pinResource

@@ -1,14 +1,15 @@
 package com.a65apps.clustering.core.algorithm
 
-import com.a65apps.clustering.core.Marker
+import com.a65apps.clustering.core.Cluster
+import com.a65apps.clustering.core.VisibleRectangularRegion
 
-interface Algorithm<P> {
-    fun addMarker(marker: Marker)
-    fun addMarkers(markers: Collection<Marker>)
+interface Algorithm {
+    fun addMarker(cluster: Cluster)
+    fun addMarkers(clusters: Collection<Cluster>)
     fun clearMarkers()
-    fun removeMarker(marker: Marker)
-    fun removeMarkers(markers: Collection<Marker>)
-    fun getMarkers(): Collection<Marker>
-    fun calculate(parameter: P): Set<Marker>
+    fun removeMarker(cluster: Cluster)
+    fun removeMarkers(clusters: Collection<Cluster>)
+    fun getMarkers(): Collection<Cluster>
+    fun calculate(visibleRectangularRegion: VisibleRectangularRegion): Set<Cluster>
     fun setRatioForClustering(value: Float)
 }

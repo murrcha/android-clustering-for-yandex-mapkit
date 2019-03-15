@@ -1,8 +1,8 @@
 package com.a65apps.clustering.yandex.view
 
-import com.a65apps.clustering.core.Marker
+import com.a65apps.clustering.core.Cluster
 import com.yandex.mapkit.map.PlacemarkMapObject
 
 interface TapListener {
-    fun markerTapped(marker: Marker, mapObject: PlacemarkMapObject)
+    fun markerTapped(cluster: Cluster, mapObject: PlacemarkMapObject)
 }

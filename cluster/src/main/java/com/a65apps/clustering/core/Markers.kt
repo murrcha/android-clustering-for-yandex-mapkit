@@ -7,11 +7,11 @@ import android.util.Log
 class Markers {
     companion object {
         // Метод для проверки количества пинов до и после кластеризации
-        fun count(markers: Set<Marker>): Int {
+        fun count(clusters: Set<Cluster>): Int {
             var count = 0
-            for (m in markers) {
+            for (m in clusters) {
                 if (m.isCluster()) {
-                    count += m.getChildrenCount()
+                    count += m.size()
                 } else {
                     count++
                 }

@@ -21,7 +21,7 @@ public class ClusterAnimator {
     public static ValueAnimator pointToBunch(@NonNull final List<PlacemarkMapObject> objects,
                                              @NonNull final List<Point> to) {
         if (objects.isEmpty() || to.size() != objects.size()) {
-            throw new IllegalArgumentException("Wrong objects or points count");
+            throw new IllegalArgumentException("Wrong objects or points size");
         }
         Point clusterPoint = calcCenter(to);
         return pointToBunch(objects, to, clusterPoint);
@@ -32,7 +32,7 @@ public class ClusterAnimator {
                                              @NonNull final List<Point> to,
                                              @NonNull final Point clusterPoint) {
         if (objects.isEmpty() || to.size() != objects.size()) {
-            throw new IllegalArgumentException("Wrong objects or points count");
+            throw new IllegalArgumentException("Wrong objects or points size");
         }
 
         final ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);

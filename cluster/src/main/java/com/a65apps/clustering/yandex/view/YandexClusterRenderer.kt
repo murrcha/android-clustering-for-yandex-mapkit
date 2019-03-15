@@ -22,7 +22,7 @@ class YandexClusterRenderer(map: Map,
                             name: String = "CLUSTER_LAYER")
     : ClusterRenderer<ClustersDiff, AnimationParams> {
     private val layer: MapObjectCollection = map.addMapObjectLayer(name)
-    private val mapObjects = mutableMapOf<Marker, PlacemarkMapObject>()
+    private val mapObjects = mutableMapOf<Cluster, PlacemarkMapObject>()
     private var clusterAnimator: AnimatorSet = AnimatorSet()
     private var tapListener = if (mapObjectTapListener != null) {
         object : MapObjectTapListener {
@@ -42,8 +42,8 @@ class YandexClusterRenderer(map: Map,
 
     override fun updateClusters(diffs: ClustersDiff) {
         if (mapObjects.isEmpty() || !animationParams.animationEnabled ||
-                diffs.actualMarkers.isEmpty() || diffs.newMarkers.isEmpty()) {
-            simpleUpdate(diffs.newMarkers)
+                diffs.actualClusters.isEmpty() || diffs.newClusters.isEmpty()) {
+            simpleUpdate(diffs.newClusters)
         } else {
             val transitions = diffs.transitions
             clusterAnimator.cancel()
@@ -74,7 +74,7 @@ class YandexClusterRenderer(map: Map,
                     }
                     //---------------------------
 
-                    checkPins(diffs.newMarkers)
+                    checkPins(diffs.newClusters)
 
                     //--------------------------
                     val newMarkersCount = Markers.count(mapObjects.keys)
@@ -88,7 +88,7 @@ class YandexClusterRenderer(map: Map,
         }
     }
 
-    private fun checkPins(clusters: Set<Marker>) {
+    private fun checkPins(clusters: Set<Cluster>) {
         val start = System.currentTimeMillis()
         val iterator = mapObjects.iterator()
         while (iterator.hasNext()) {
@@ -109,10 +109,10 @@ class YandexClusterRenderer(map: Map,
         Log.d("MARKER", "PIN CHECKING TIME ${end - start} ms")
     }
 
-    override fun setMarkers(markers: Set<Marker>) {
+    override fun setMarkers(clusters: Set<Cluster>) {
         mapObjects.clear()
         layer.clear()
-        markers.forEach {
+        clusters.forEach {
             createPlacemark(it)
         }
     }
@@ -133,34 +133,34 @@ class YandexClusterRenderer(map: Map,
         }
     }
 
-    private fun simpleUpdate(newMarkers: Set<Marker>) {
+    private fun simpleUpdate(newClusters: Set<Cluster>) {
         layer.clear()
-        for (marker in newMarkers) {
+        for (marker in newClusters) {
             createPlacemark(marker)
         }
     }
 
     //Вызывается для перемещения маркеров в кластер
-    private fun markersToCluster(cluster: Marker, markers: Set<Marker>) {
+    private fun markersToCluster(cluster: Cluster, clusters: Set<Cluster>) {
         if (animationParams.animationEnabled) {
-            animateMarkersToCluster(cluster, markers)
+            animateMarkersToCluster(cluster, clusters)
         } else {
-            setMarkersToCluster(cluster, markers)
+            setMarkersToCluster(cluster, clusters)
         }
     }
 
     //Перемещение маркеров в кластер с анимацией
-    private fun animateMarkersToCluster(cluster: Marker, markers: Set<Marker>): Animator {
+    private fun animateMarkersToCluster(cluster: Cluster, clusters: Set<Cluster>): Animator {
         //коллекция маркеров которые будут анимироваться в кластер
         val movedMarkers = mutableListOf<PlacemarkMapObject>()
         val startCoordinates = mutableListOf<LatLng>()
-        markers.forEach { marker ->
+        clusters.forEach { marker ->
             mapObjects[marker]?.let { mapObject ->
                 movedMarkers.add(mapObject)
                 startCoordinates.add(mapObject.geometry.toLatLng())
             }
         }
-        val clusterPoint = cluster.getGeoCoor().toPoint()
+        val clusterPoint = cluster.geoCoor().toPoint()
         val animator = ValueAnimator.ofFloat(0f, 1f)
         val animatorUpdateListener = ValueAnimator.AnimatorUpdateListener {
             val factor = it.animatedValue as Float
@@ -180,7 +180,7 @@ class YandexClusterRenderer(map: Map,
         animator.addUpdateListener(animatorUpdateListener)
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(anim: Animator?) {
-                removePlacemarks(markers)
+                removePlacemarks(clusters)
                 animator.removeUpdateListener(animatorUpdateListener)
                 animator.removeListener(this)
             }
@@ -193,20 +193,20 @@ class YandexClusterRenderer(map: Map,
     }
 
     //Перемещение маркеров в кластер без анимации
-    private fun setMarkersToCluster(cluster: Marker, markers: Set<Marker>) {
+    private fun setMarkersToCluster(cluster: Cluster, clusters: Set<Cluster>) {
         createPlacemark(cluster)
-        removePlacemarks(markers)
+        removePlacemarks(clusters)
     }
 
     //Перемещение маркеров из кластера с анимацией
-    private fun animateClusterToMarkers(cluster: Marker, markers: Set<Marker>): Animator {
+    private fun animateClusterToMarkers(cluster: Cluster, clusters: Set<Cluster>): Animator {
         removePlacemark(cluster)
         //коллекция маркеров которые будут анимироваться в кластер
         val movedMarkers = mutableListOf<PlacemarkMapObject>()
         val to = mutableListOf<Point>()
-        val clusterPoint = cluster.getGeoCoor()
-        markers.forEach {
-            to.add(it.getGeoCoor().toPoint())
+        val clusterPoint = cluster.geoCoor()
+        clusters.forEach {
+            to.add(it.geoCoor().toPoint())
         }
         val animator = ValueAnimator.ofFloat(0f, 1f)
         val animatorUpdateListener = ValueAnimator.AnimatorUpdateListener {
@@ -229,38 +229,38 @@ class YandexClusterRenderer(map: Map,
             }
 
             override fun onAnimationStart(animation: Animator?) {
-                markers.forEach {
-                    movedMarkers.add(createPlacemark(it, cluster.getGeoCoor()))
+                clusters.forEach {
+                    movedMarkers.add(createPlacemark(it, cluster.geoCoor()))
                 }
             }
         })
         return animator
     }
 
-    private fun removePlacemarks(markers: Set<Marker>) {
-        for (marker in markers) {
+    private fun removePlacemarks(clusters: Set<Cluster>) {
+        for (marker in clusters) {
             removePlacemark(marker)
         }
     }
 
-    private fun removePlacemark(marker: Marker) {
-        mapObjects[marker]?.let {
+    private fun removePlacemark(cluster: Cluster) {
+        mapObjects[cluster]?.let {
             if (it.isValid) {
                 layer.remove(it)
-                mapObjects.remove(marker)
+                mapObjects.remove(cluster)
             }
         }
     }
 
-    private fun createPlacemark(marker: Marker): PlacemarkMapObject {
-        return createPlacemark(marker, marker.getGeoCoor())
+    private fun createPlacemark(cluster: Cluster): PlacemarkMapObject {
+        return createPlacemark(cluster, cluster.geoCoor())
     }
 
-    private fun createPlacemark(marker: Marker, coords: LatLng): PlacemarkMapObject {
-        removePlacemark(marker)
-        val image = imageProvider.get(marker)
+    private fun createPlacemark(cluster: Cluster, coords: LatLng): PlacemarkMapObject {
+        removePlacemark(cluster)
+        val image = imageProvider.get(cluster)
         val placemark = layer.addPlacemark(coords, image.provider(), image.style)
-        mapObjects[marker] = placemark
+        mapObjects[cluster] = placemark
         return placemark
     }
 
