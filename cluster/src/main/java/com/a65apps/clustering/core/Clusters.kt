@@ -4,7 +4,7 @@ import android.os.Looper
 import android.util.Log
 
 //TODO: утилитный класс. Удалить после получения стабильной версии
-class Markers {
+class Clusters {
     companion object {
         // Метод для проверки количества пинов до и после кластеризации
         fun count(clusters: Set<Cluster>): Int {

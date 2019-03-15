@@ -6,8 +6,8 @@ import com.a65apps.clustering.core.view.RenderConfig
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-open class DefaultClusterClusterManager<in C : RenderConfig>(
-        private val renderer: ClusterRenderer<ClustersDiff, C>,
+open class DefaultClusterManager<in C : RenderConfig>(
+        private val renderer: ClusterRenderer<DefaultClustersDiff, C>,
         private var algorithm: Algorithm,
         private var visibleRectangularRegion: VisibleRectangularRegion) : ClusterManager {
     init {
@@ -18,9 +18,6 @@ open class DefaultClusterClusterManager<in C : RenderConfig>(
     private val algorithmLock = ReentrantReadWriteLock()
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private var calculateJob: Job? = null
-
-    fun getNewMarker(geoCoor: LatLng, payload: Any? = null): Cluster =
-            DefaultCluster(geoCoor, payload)
 
     fun calculateClusters(visibleRectangularRegion: VisibleRectangularRegion) {
         this.visibleRectangularRegion = visibleRectangularRegion
@@ -37,76 +34,76 @@ open class DefaultClusterClusterManager<in C : RenderConfig>(
         }
     }
 
-    private suspend fun calcDiffs(): ClustersDiff? {
+    private suspend fun calcDiffs(): DefaultClustersDiff? {
         return coroutineScope {
-            val newMarkers = updateClusters()
+            val newClusters = updateClusters()
             val actualClusterCount = clusterCount(actualClusters)
-            val newClusterCount = clusterCount(newMarkers)
-            val isCollapsing = newMarkers.size <= actualClusters.size
-            var diffs: ClustersDiff? = null
+            val newClusterCount = clusterCount(newClusters)
+            val isCollapsing = newClusters.size <= actualClusters.size
+            var diffs: DefaultClustersDiff? = null
             if (actualClusterCount != newClusterCount ||
-                    actualClusters.size != newMarkers.size) {
-                diffs = buildTransitionMap(actualClusters, newMarkers, isCollapsing)
+                    actualClusters.size != newClusters.size) {
+                diffs = buildTransitionMap(actualClusters, newClusters, isCollapsing)
             }
             diffs
         }
     }
 
-    override fun clearMarkers() {
+    override fun clearItems() {
         algorithmLock.writeLock().lock()
         try {
-            algorithm.clearMarkers()
-            onModifyRawMarkers(true)
+            algorithm.clearItems()
+            onModifyRawClusters(true)
         } finally {
             algorithmLock.writeLock().unlock()
         }
     }
 
-    override fun setMarkers(clusters: Set<Cluster>) {
+    override fun setItems(clusters: Set<Cluster>) {
         algorithmLock.writeLock().lock()
         try {
-            algorithm.addMarkers(clusters)
+            algorithm.addItems(clusters)
             calculateClusters()
         } finally {
             algorithmLock.writeLock().unlock()
         }
     }
 
-    override fun addMarker(cluster: Cluster) {
+    override fun addItem(cluster: Cluster) {
         algorithmLock.writeLock().lock()
         try {
-            algorithm.addMarker(cluster)
-            onModifyRawMarkers(false)
+            algorithm.addItem(cluster)
+            onModifyRawClusters(false)
         } finally {
             algorithmLock.writeLock().unlock()
         }
     }
 
-    override fun removeMarker(cluster: Cluster) {
+    override fun removeItem(cluster: Cluster) {
         algorithmLock.writeLock().lock()
         try {
-            algorithm.removeMarker(cluster)
-            onModifyRawMarkers(false)
+            algorithm.removeItem(cluster)
+            onModifyRawClusters(false)
         } finally {
             algorithmLock.writeLock().unlock()
         }
     }
 
-    override fun addMarkers(clusters: Set<Cluster>) {
+    override fun addItems(clusters: Set<Cluster>) {
         algorithmLock.writeLock().lock()
         try {
-            algorithm.addMarkers(clusters)
-            onModifyRawMarkers(false)
+            algorithm.addItems(clusters)
+            onModifyRawClusters(false)
         } finally {
             algorithmLock.writeLock().unlock()
         }
     }
 
-    override fun removeMarkers(clusters: Set<Cluster>) {
+    override fun removeItems(clusters: Set<Cluster>) {
         algorithmLock.writeLock().lock()
         try {
-            algorithm.removeMarkers(clusters)
-            onModifyRawMarkers(false)
+            algorithm.removeItems(clusters)
+            onModifyRawClusters(false)
         } finally {
             algorithmLock.writeLock().unlock()
         }
@@ -116,52 +113,52 @@ open class DefaultClusterClusterManager<in C : RenderConfig>(
         return algorithm.calculate(visibleRectangularRegion)
     }
 
-    private fun callRenderer(diffs: ClustersDiff) {
+    private fun callRenderer(diffs: DefaultClustersDiff) {
         renderer.updateClusters(diffs)
         actualClusters.clear()
-        actualClusters.addAll(diffs.newMarkers())
+        actualClusters.addAll(diffs.newClusters())
     }
 
-    private fun onModifyRawMarkers(isClear: Boolean) {
+    private fun onModifyRawClusters(isClear: Boolean) {
         actualClusters.clear()
         if (!isClear) {
             actualClusters.addAll(updateClusters())
         }
-        renderer.setMarkers(actualClusters)
+        renderer.setClusters(actualClusters)
     }
 
     private fun buildTransitionMap(actualClusters: Set<Cluster>,
                                    newClusters: Set<Cluster>,
-                                   isCollapsing: Boolean): ClustersDiff {
+                                   isCollapsing: Boolean): DefaultClustersDiff {
         val transitionMap = mutableMapOf<Cluster, Set<Cluster>>()
         if (actualClusters.isEmpty() || newClusters.isEmpty()) {
-            return ClustersDiff(actualClusters, newClusters, transitionMap, isCollapsing)
+            return DefaultClustersDiff(actualClusters, newClusters, transitionMap, isCollapsing)
         }
         val src = if (isCollapsing) newClusters else actualClusters
         val dst = if (isCollapsing) actualClusters else newClusters
-        for (marker in dst) {
-            if (src.contains(marker)) {
+        for (cluster in dst) {
+            if (src.contains(cluster)) {
                 continue
             }
-            val closest = findClosestCluster(marker, src)
-            transitionMap[closest] = transitionMap[closest]?.plus(marker) ?: setOf(marker)
+            val closest = findClosestCluster(cluster, src)
+            transitionMap[closest] = transitionMap[closest]?.plus(cluster) ?: setOf(cluster)
         }
-        return ClustersDiff(actualClusters, newClusters, transitionMap, isCollapsing)
+        return DefaultClustersDiff(actualClusters, newClusters, transitionMap, isCollapsing)
     }
 
     private fun findClosestCluster(cluster: Cluster, clusters: Set<Cluster>): Cluster {
         var minDistance = Double.MAX_VALUE
         var clusterCandidate: Cluster? = null
         var firstCluster: Cluster? = null
-        for (mapObjectMarker in clusters) {
+        for (mapObjectCluster in clusters) {
             if (firstCluster == null) {
-                firstCluster = mapObjectMarker
+                firstCluster = mapObjectCluster
             }
-            if (mapObjectMarker.isCluster()) {
-                val distance = distanceBetween(mapObjectMarker, cluster)
+            if (mapObjectCluster.isCluster()) {
+                val distance = distanceBetween(mapObjectCluster, cluster)
                 if (clusterCandidate == null || distance < minDistance) {
                     minDistance = distance
-                    clusterCandidate = mapObjectMarker
+                    clusterCandidate = mapObjectCluster
                 }
             }
         }
@@ -180,8 +177,8 @@ open class DefaultClusterClusterManager<in C : RenderConfig>(
 
     private fun clusterCount(clusters: Set<Cluster>): Int {
         var count = 0
-        for (marker in clusters) {
-            if (marker.isCluster()) {
+        for (cluster in clusters) {
+            if (cluster.isCluster()) {
                 count++
             }
         }

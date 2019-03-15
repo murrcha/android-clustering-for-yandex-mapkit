@@ -10,7 +10,7 @@ import com.a65apps.clustering.core.DefaultCluster
 import com.a65apps.clustering.core.VisibleRectangularRegion
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.core.view.AnimationParams
-import com.a65apps.clustering.yandex.YandexDefaultClusterClusterManager
+import com.a65apps.clustering.yandex.YandexDefaultClusterManager
 import com.a65apps.clustering.yandex.extention.toLatLng
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
 import com.a65apps.clustering.yandex.view.TapListener
@@ -26,14 +26,14 @@ const val ANIMATION_DURATION = 240L
 
 class MainActivity : AppCompatActivity() {
     private lateinit var clusterPinProvider: ClusterPinProvider
-    private lateinit var clusterManager: YandexDefaultClusterClusterManager
+    private lateinit var clusterManager: YandexDefaultClusterManager
     private var toast: Toast? = null
     private var selectedCluster: Cluster? = null
     private val testMarkers = mutableSetOf<Cluster>()
 
     private val inputListener = object : InputListener {
         override fun onMapLongTap(map: Map, point: Point) {
-            clusterManager.addMarker(DefaultCluster(point.toLatLng()))
+            clusterManager.addItem(DefaultCluster(point.toLatLng()))
             showToast(point.toString())
         }
 
@@ -51,12 +51,12 @@ class MainActivity : AppCompatActivity() {
 
         val map = mapView.map
         clusterPinProvider = MainClusterPinProvider(this)
-        clusterManager = YandexDefaultClusterClusterManager(YandexClusterRenderer(map,
+        clusterManager = YandexDefaultClusterManager(YandexClusterRenderer(map,
                 clusterPinProvider,
                 AnimationParams(true, true,
                         ANIMATION_DURATION, null),
                 object : TapListener {
-                    override fun markerTapped(cluster: Cluster, mapObject: PlacemarkMapObject) {
+                    override fun clusterTapped(cluster: Cluster, mapObject: PlacemarkMapObject) {
                         showToast(cluster.toString())
                         selectedCluster = if (cluster.isCluster()) {
                             cluster.items().first()
@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
                         map.visibleRegion.bottomRight.toLatLng()))
         map.addCameraListener(clusterManager)
         map.addInputListener(inputListener)
+        mapView.map.move(TestData.CAMERA_POSITION)
     }
 
     override fun onStart() {
@@ -107,23 +108,22 @@ class MainActivity : AppCompatActivity() {
         TestData.POINTS_LIST.forEach {
             markers.add(DefaultCluster(it.toLatLng(), TestData.POINTS_LIST.indexOf(it)))
         }
-        clusterManager.setMarkers(markers)
-        mapView.map.move(TestData.CAMERA_POSITION)
+        clusterManager.setItems(markers)
     }
 
     private fun clearTestPoints() {
-        clusterManager.clearMarkers()
+        clusterManager.clearItems()
     }
 
     private fun addTestPoint() {
         val point = TestData.randomPoint()
         val marker = DefaultCluster(point.toLatLng(), null)
-        clusterManager.addMarker(marker)
+        clusterManager.addItem(marker)
     }
 
     private fun removeTestPoint() {
         selectedCluster?.let {
-            clusterManager.removeMarker(selectedCluster as Cluster)
+            clusterManager.removeItem(selectedCluster as Cluster)
         }
     }
 
@@ -132,11 +132,11 @@ class MainActivity : AppCompatActivity() {
             val marker = DefaultCluster(TestData.randomPoint().toLatLng())
             testMarkers.add(marker)
         }
-        clusterManager.addMarkers(testMarkers)
+        clusterManager.addItems(testMarkers)
     }
 
     private fun removeTestPoints() {
-        clusterManager.removeMarkers(testMarkers)
+        clusterManager.removeItems(testMarkers)
         testMarkers.clear()
     }
 

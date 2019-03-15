@@ -16,13 +16,13 @@ private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
  * hierarchical.
  * <p/>
  * High level algorithm:<br>
- * 1. Iterate over items in the order they were added (candidate clusters).<br>
+ * 1. Iterate over size in the order they were added (candidate clusters).<br>
  * 2. Create a cluster with the center of the item. <br>
- * 3. Add all items that are within a certain distance to the cluster. <br>
- * 4. Move any items out of an existing cluster if they are closer to another cluster. <br>
- * 5. Remove those items from the list of candidate clusters.
+ * 3. Add all size that are within a certain distance to the cluster. <br>
+ * 4. Move any size out of an existing cluster if they are closer to another cluster. <br>
+ * 5. Remove those size from the list of candidate clusters.
  * <p/>
- * Clusters have the center of the first element (not the centroid of the items within it).
+ * Clusters have the center of the first element (not the centroid of the size within it).
  */
 open class NonHierarchicalDistanceBasedAlgorithm(
         private val clusterProvider: ClusterProvider = DefaultClusterProvider()) :
@@ -40,29 +40,29 @@ open class NonHierarchicalDistanceBasedAlgorithm(
      */
     private val quadTree = PointQuadTree<QuadItem>(0.0, 1.0, 0.0, 1.0)
 
-    override fun addMarker(cluster: Cluster) {
-        val quadItem = QuadItem(cluster as DefaultCluster)
+    override fun addItem(item: Cluster) {
+        val quadItem = QuadItem(item as DefaultCluster)
         synchronized(quadTree) {
             quadItems.add(quadItem)
             quadTree.add(quadItem)
         }
     }
 
-    override fun addMarkers(clusters: Collection<Cluster>) = clusters.forEach { addMarker(it) }
+    override fun addItems(items: Collection<Cluster>) = items.forEach { addItem(it) }
 
-    override fun removeMarker(cluster: Cluster) {
+    override fun removeItem(item: Cluster) {
         // QuadItem delegates hashcode() and equals() to its item so,
         //   removing any QuadItem to that item will remove the item
-        val quadItem = QuadItem(cluster as DefaultCluster)
+        val quadItem = QuadItem(item as DefaultCluster)
         synchronized(quadTree) {
             quadItems.remove(quadItem)
             quadTree.remove(quadItem)
         }
     }
 
-    override fun removeMarkers(clusters: Collection<Cluster>) {
+    override fun removeItems(items: Collection<Cluster>) {
         synchronized(quadTree) {
-            clusters.forEach {
+            items.forEach {
                 val quadItem = QuadItem(it as DefaultCluster)
                 quadItems.remove(quadItem)
                 quadTree.remove(quadItem)
@@ -70,7 +70,7 @@ open class NonHierarchicalDistanceBasedAlgorithm(
         }
     }
 
-    override fun clearMarkers() {
+    override fun clearItems() {
         synchronized(quadTree) {
             quadItems.clear()
             quadTree.clear()
@@ -84,7 +84,7 @@ open class NonHierarchicalDistanceBasedAlgorithm(
         val resultingQuadItems = mutableSetOf<QuadItem>()
         val distanceToCluster = mutableMapOf<QuadItem, Double>()
         val itemToCluster = mutableMapOf<QuadItem, Cluster>()
-        val resultingMarkers = mutableSetOf<Cluster>()
+        val resultingClusters = mutableSetOf<Cluster>()
 
         synchronized(quadTree) {
             for (candidate in quadItems) {
@@ -127,28 +127,20 @@ open class NonHierarchicalDistanceBasedAlgorithm(
 
             resultingQuadItems.forEach {
                 if (it.cluster.isCluster()) {
-                    resultingMarkers.add(it.cluster)
+                    resultingClusters.add(it.cluster)
                 } else {
-                    resultingMarkers.addAll(it.cluster.items())
+                    resultingClusters.addAll(it.cluster.items())
                 }
             }
         }
-        Log.d("MARKER", "ALGORITHM PINS COUNT ${Markers.count(resultingMarkers)}")
-        return resultingMarkers
+        Log.d("MARKER", "ALGORITHM PINS COUNT ${Clusters.count(resultingClusters)}")
+        return resultingClusters
     }
 
     private fun getZoomSpecificSpan(visibleRectangularRegion: VisibleRectangularRegion): Double {
         val point1 = PROJECTION.toPoint(visibleRectangularRegion.topLeft)
         val point2 = PROJECTION.toPoint(visibleRectangularRegion.bottomRight)
         return sqrt(distanceSquared(point1, point2)) * ratioForClustering
-    }
-
-    override fun getMarkers(): Collection<Cluster> {
-        val markers = mutableListOf<Cluster>()
-        synchronized(quadTree) {
-            quadItems.forEach { markers.add(it.cluster) }
-        }
-        return markers
     }
 
     override fun setRatioForClustering(value: Float) {

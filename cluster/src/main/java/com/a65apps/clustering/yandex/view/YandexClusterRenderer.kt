@@ -5,7 +5,10 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.util.Log
-import com.a65apps.clustering.core.*
+import com.a65apps.clustering.core.Cluster
+import com.a65apps.clustering.core.Clusters
+import com.a65apps.clustering.core.ClustersDiff
+import com.a65apps.clustering.core.LatLng
 import com.a65apps.clustering.core.view.AnimationParams
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.yandex.extention.addPlacemark
@@ -29,7 +32,7 @@ class YandexClusterRenderer(map: Map,
             override fun onMapObjectTap(mapObject: MapObject, point: Point): Boolean {
                 for ((marker, markerMapObject) in mapObjects) {
                     if (mapObject == markerMapObject) {
-                        mapObjectTapListener.markerTapped(marker, markerMapObject)
+                        mapObjectTapListener.clusterTapped(marker, markerMapObject)
                         return true
                     }
                 }
@@ -42,13 +45,13 @@ class YandexClusterRenderer(map: Map,
 
     override fun updateClusters(diffs: ClustersDiff) {
         if (mapObjects.isEmpty() || !animationParams.animationEnabled ||
-                diffs.actualClusters.isEmpty() || diffs.newClusters.isEmpty()) {
-            simpleUpdate(diffs.newClusters)
+                diffs.currentClusters().isEmpty() || diffs.newClusters().isEmpty()) {
+            simpleUpdate(diffs.newClusters())
         } else {
-            val transitions = diffs.transitions
+            val transitions = diffs.transitions()
             clusterAnimator.cancel()
             clusterAnimator = AnimatorSet()
-            if (diffs.isCollapsing) {
+            if (diffs.collapsing()) {
                 for ((cluster, markers) in transitions) {
                     clusterAnimator.play(animateMarkersToCluster(cluster, markers))
                 }
@@ -64,7 +67,7 @@ class YandexClusterRenderer(map: Map,
                     //TODO: убрать логирование
                     //--------------------------
                     val expectedPinCount = 117
-                    val markersCount = Markers.count(mapObjects.keys)
+                    val markersCount = Clusters.count(mapObjects.keys)
                     Log.d("MARKER", "RENDERER CLUSTER COUNT ${mapObjects.size}")
                     Log.d("MARKER", "RENDERER PINS COUNT BEFORE CHECKING $markersCount")
                     if (markersCount != expectedPinCount) {
@@ -74,10 +77,10 @@ class YandexClusterRenderer(map: Map,
                     }
                     //---------------------------
 
-                    checkPins(diffs.newClusters)
+                    checkPins(diffs.newClusters())
 
                     //--------------------------
-                    val newMarkersCount = Markers.count(mapObjects.keys)
+                    val newMarkersCount = Clusters.count(mapObjects.keys)
                     Log.d("MARKER", "RENDERER PINS COUNT AFTER CHECKING $newMarkersCount")
                     Log.d("MARKER", "-------------------------------------------------------")
                     //--------------------------
@@ -109,7 +112,7 @@ class YandexClusterRenderer(map: Map,
         Log.d("MARKER", "PIN CHECKING TIME ${end - start} ms")
     }
 
-    override fun setMarkers(clusters: Set<Cluster>) {
+    override fun setClusters(clusters: Set<Cluster>) {
         mapObjects.clear()
         layer.clear()
         clusters.forEach {
@@ -135,8 +138,8 @@ class YandexClusterRenderer(map: Map,
 
     private fun simpleUpdate(newClusters: Set<Cluster>) {
         layer.clear()
-        for (marker in newClusters) {
-            createPlacemark(marker)
+        for (cluster in newClusters) {
+            createPlacemark(cluster)
         }
     }
 
@@ -238,8 +241,8 @@ class YandexClusterRenderer(map: Map,
     }
 
     private fun removePlacemarks(clusters: Set<Cluster>) {
-        for (marker in clusters) {
-            removePlacemark(marker)
+        for (cluster in clusters) {
+            removePlacemark(cluster)
         }
     }
 

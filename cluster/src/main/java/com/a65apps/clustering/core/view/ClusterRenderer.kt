@@ -1,11 +1,11 @@
 package com.a65apps.clustering.core.view
 
 import com.a65apps.clustering.core.Cluster
-import com.a65apps.clustering.core.MarkersDiff
+import com.a65apps.clustering.core.ClustersDiff
 
-interface ClusterRenderer<in D: MarkersDiff, in C: RenderConfig> {
+interface ClusterRenderer<in D : ClustersDiff, in C : RenderConfig> {
     fun updateClusters(diffs: D)
-    fun setMarkers(clusters: Set<Cluster>)
+    fun setClusters(clusters: Set<Cluster>)
     fun config(renderConfig: C)
     fun onAdd()
     fun onRemove()

@@ -1,10 +1,10 @@
 package com.a65apps.clustering.core
 
 interface ClusterManager {
-    fun setMarkers(clusters: Set<Cluster>)
-    fun clearMarkers()
-    fun addMarker(cluster: Cluster)
-    fun removeMarker(cluster: Cluster)
-    fun addMarkers(clusters: Set<Cluster>)
-    fun removeMarkers(clusters: Set<Cluster>)
+    fun setItems(clusters: Set<Cluster>)
+    fun clearItems()
+    fun addItem(cluster: Cluster)
+    fun removeItem(cluster: Cluster)
+    fun addItems(clusters: Set<Cluster>)
+    fun removeItems(clusters: Set<Cluster>)
 }
