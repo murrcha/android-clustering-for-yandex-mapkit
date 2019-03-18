@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     private val inputListener = object : InputListener {
         override fun onMapLongTap(map: Map, point: Point) {
+            testMarkers.add(DefaultCluster(point.toLatLng()))
             clusterManager.addItem(DefaultCluster(point.toLatLng()))
             showToast(point.toString())
         }
@@ -118,6 +119,7 @@ class MainActivity : AppCompatActivity() {
     private fun addTestPoint() {
         val point = TestData.randomPoint()
         val marker = DefaultCluster(point.toLatLng(), null)
+        testMarkers.add(marker)
         clusterManager.addItem(marker)
     }
 
