@@ -39,11 +39,10 @@ open class DefaultClusterManager<in C : RenderConfig>(
             val newClusters = updateClusters()
             val actualClusterCount = clusterCount(actualClusters)
             val newClusterCount = clusterCount(newClusters)
-            val isCollapsing = newClusters.size <= actualClusters.size
             var diffs: DefaultClustersDiff? = null
             if (actualClusterCount != newClusterCount ||
                     actualClusters.size != newClusters.size) {
-                diffs = buildTransitionMap(actualClusters, newClusters, isCollapsing)
+                diffs = DefaultClustersDiff(actualClusters, newClusters)
             }
             diffs
         }
@@ -125,54 +124,6 @@ open class DefaultClusterManager<in C : RenderConfig>(
             actualClusters.addAll(updateClusters())
         }
         renderer.setClusters(actualClusters)
-    }
-
-    private fun buildTransitionMap(actualClusters: Set<Cluster>,
-                                   newClusters: Set<Cluster>,
-                                   isCollapsing: Boolean): DefaultClustersDiff {
-        val transitionMap = mutableMapOf<Cluster, Set<Cluster>>()
-        if (actualClusters.isEmpty() || newClusters.isEmpty()) {
-            return DefaultClustersDiff(actualClusters, newClusters, transitionMap, isCollapsing)
-        }
-        val src = if (isCollapsing) newClusters else actualClusters
-        val dst = if (isCollapsing) actualClusters else newClusters
-        for (cluster in dst) {
-            if (src.contains(cluster)) {
-                continue
-            }
-            val closest = findClosestCluster(cluster, src)
-            transitionMap[closest] = transitionMap[closest]?.plus(cluster) ?: setOf(cluster)
-        }
-        return DefaultClustersDiff(actualClusters, newClusters, transitionMap, isCollapsing)
-    }
-
-    private fun findClosestCluster(cluster: Cluster, clusters: Set<Cluster>): Cluster {
-        var minDistance = Double.MAX_VALUE
-        var clusterCandidate: Cluster? = null
-        var firstCluster: Cluster? = null
-        for (mapObjectCluster in clusters) {
-            if (firstCluster == null) {
-                firstCluster = mapObjectCluster
-            }
-            if (mapObjectCluster.isCluster()) {
-                val distance = distanceBetween(mapObjectCluster, cluster)
-                if (clusterCandidate == null || distance < minDistance) {
-                    minDistance = distance
-                    clusterCandidate = mapObjectCluster
-                }
-            }
-        }
-        if (clusterCandidate == null) {
-            clusterCandidate = firstCluster
-        }
-        return clusterCandidate!!
-    }
-
-    private fun distanceBetween(a: Cluster, b: Cluster): Double {
-        return (a.geoCoor().latitude - b.geoCoor().latitude) *
-                (a.geoCoor().latitude - b.geoCoor().latitude) +
-                (a.geoCoor().longitude - b.geoCoor().longitude) *
-                (a.geoCoor().longitude - b.geoCoor().longitude)
     }
 
     private fun clusterCount(clusters: Set<Cluster>): Int {
