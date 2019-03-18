@@ -32,6 +32,7 @@ android {
     }
 
     testOptions {
+        unitTests.returnDefaultValues = true
         junitPlatform {
             filters {
                 engines {
