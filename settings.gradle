@@ -1,1 +1,1 @@
-include ':app', ':cluster'
+include ':demo', ':library'
