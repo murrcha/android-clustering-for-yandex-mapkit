@@ -1,10 +1,10 @@
 package com.a65apps.clustering.core
 
-data class DefaultClustersDiff(val currentClusters: Set<Cluster>,
-                               val newClusters: Set<Cluster> = emptySet()) : ClustersDiff {
+open class DefaultClustersDiff(private val currentClusters: Set<Cluster>,
+                               private val newClusters: Set<Cluster> = emptySet()) : ClustersDiff {
     private val isCollapsing: Boolean = newClusters.size <= currentClusters.size
     private val transitions: Map<Cluster, Set<Cluster>> =
-            buildTransitionMap(currentClusters, newClusters)
+            transitionsMap(currentClusters, newClusters)
 
     override fun transitions(): Map<Cluster, Set<Cluster>> {
         return transitions
@@ -16,65 +16,42 @@ data class DefaultClustersDiff(val currentClusters: Set<Cluster>,
 
     override fun currentClusters(): Set<Cluster> = currentClusters
 
-    private fun buildTransitionMap(actualClusters: Set<Cluster>,
-                                   newClusters: Set<Cluster>): Map<Cluster, Set<Cluster>> {
-        if (actualClusters.isEmpty() || newClusters.isEmpty()) {
+    private fun transitionsMap(currentClusters: Set<Cluster>,
+                               newClusters: Set<Cluster>): Map<Cluster, Set<Cluster>> {
+        if (currentClusters.isEmpty() || newClusters.isEmpty()) {
             return emptyMap()
         }
         return if (isCollapsing) {
-            collapsingMap(actualClusters, newClusters)
+            buildTransitionsMap(newClusters, currentClusters)
         } else {
-            expandingMap(actualClusters, newClusters)
+            buildTransitionsMap(currentClusters, newClusters)
         }
     }
 
-    private fun expandingMap(actualClusters: Set<Cluster>,
-                             newClusters: Set<Cluster>): Map<Cluster, Set<Cluster>> {
+    private fun buildTransitionsMap(dst: Set<Cluster>,
+                                    src: Set<Cluster>): Map<Cluster, Set<Cluster>> {
         val transitionMap = mutableMapOf<Cluster, Set<Cluster>>()
-        for (new in newClusters) {
-            if (actualClusters.contains(new)) {
+        for (child in src) {
+            if (dst.contains(child)) {
                 continue
             }
             var added = false
-            for (actual in actualClusters) {
-                if (actual.isCluster()) {
-                    if ((!new.isCluster() && actual.items().contains(new)) ||
-                            (new.isCluster() && actual.items().containsAll(new.items()))) {
-                        transitionMap[actual] = transitionMap[actual]?.plus(new) ?: setOf(new)
+            for (parent in dst) {
+                if (parent.isCluster()) {
+                    if ((!child.isCluster() && parent.items().contains(child)) ||
+                            (child.isCluster() && parent.items().containsAll(
+                                    child.items()))) {
+                        transitionMap[parent] =
+                                transitionMap[parent]?.plus(child) ?: setOf(child)
                         added = true
                         break
                     }
                 }
             }
             if (!added) {
-                val closest = findClosestCluster(new, actualClusters)
-                transitionMap[closest] = transitionMap[closest]?.plus(new) ?: setOf(new)
-            }
-        }
-        return transitionMap
-    }
-
-    private fun collapsingMap(actualClusters: Set<Cluster>,
-                              newClusters: Set<Cluster>): Map<Cluster, Set<Cluster>> {
-        val transitionMap = mutableMapOf<Cluster, Set<Cluster>>()
-        for (actual in actualClusters) {
-            if (newClusters.contains(actual)) {
-                continue
-            }
-            var added = false
-            for (new in newClusters) {
-                if (new.isCluster()) {
-                    if ((!actual.isCluster() && new.items().contains(actual)) ||
-                            (actual.isCluster() && new.items().containsAll(actual.items()))) {
-                        transitionMap[new] = transitionMap[new]?.plus(actual) ?: setOf(actual)
-                        added = true
-                        break
-                    }
-                }
-            }
-            if (!added) {
-                val closest = findClosestCluster(actual, newClusters)
-                transitionMap[closest] = transitionMap[closest]?.plus(actual) ?: setOf(actual)
+                val closest = findClosestCluster(child, dst)
+                transitionMap[closest] =
+                        transitionMap[closest]?.plus(child) ?: setOf(child)
             }
         }
         return transitionMap

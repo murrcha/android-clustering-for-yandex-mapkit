@@ -9,12 +9,12 @@ import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.core.DefaultCluster
 import com.a65apps.clustering.core.VisibleRectangularRegion
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
-import com.a65apps.clustering.core.view.AnimationParams
-import com.a65apps.clustering.yandex.YandexDefaultClusterManager
+import com.a65apps.clustering.yandex.YandexClusterManager
 import com.a65apps.clustering.yandex.extention.toLatLng
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
 import com.a65apps.clustering.yandex.view.TapListener
 import com.a65apps.clustering.yandex.view.YandexClusterRenderer
+import com.a65apps.clustering.yandex.view.YandexRenderConfig
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.InputListener
@@ -22,14 +22,22 @@ import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.map.PlacemarkMapObject
 import kotlinx.android.synthetic.main.activity_main.*
 
-const val ANIMATION_DURATION = 240L
-
 class MainActivity : AppCompatActivity() {
     private lateinit var clusterPinProvider: ClusterPinProvider
-    private lateinit var clusterManager: YandexDefaultClusterManager
+    private lateinit var clusterManager: YandexClusterManager
     private var toast: Toast? = null
     private var selectedCluster: Cluster? = null
     private val testMarkers = mutableSetOf<Cluster>()
+    private val tapListener = object : TapListener {
+        override fun clusterTapped(cluster: Cluster, mapObject: PlacemarkMapObject) {
+            showToast(cluster.toString())
+            selectedCluster = if (cluster.isCluster()) {
+                cluster.items().first()
+            } else {
+                cluster
+            }
+        }
+    }
 
     private val inputListener = object : InputListener {
         override fun onMapLongTap(map: Map, point: Point) {
@@ -50,22 +58,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val map = mapView.map
         clusterPinProvider = MainClusterPinProvider(this)
-        clusterManager = YandexDefaultClusterManager(YandexClusterRenderer(map,
-                clusterPinProvider,
-                AnimationParams(true, true,
-                        ANIMATION_DURATION, null),
-                object : TapListener {
-                    override fun clusterTapped(cluster: Cluster, mapObject: PlacemarkMapObject) {
-                        showToast(cluster.toString())
-                        selectedCluster = if (cluster.isCluster()) {
-                            cluster.items().first()
-                        } else {
-                            cluster
-                        }
-                    }
-                }),
+        val map = mapView.map
+        val renderConfig = YandexRenderConfig()
+        val clusterRenderer = YandexClusterRenderer(map, clusterPinProvider, renderConfig,
+                tapListener)
+        clusterManager = YandexClusterManager(clusterRenderer,
                 NonHierarchicalDistanceBasedAlgorithm(MainClusterProvider()),
                 VisibleRectangularRegion(map.visibleRegion.topLeft.toLatLng(),
                         map.visibleRegion.bottomRight.toLatLng()))

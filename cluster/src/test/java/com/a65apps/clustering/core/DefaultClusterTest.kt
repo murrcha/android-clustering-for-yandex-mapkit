@@ -66,8 +66,8 @@ object DefaultClusterTest : Spek({
                     assertThat(notEmptyCluster.size()).isEqualTo(9)
                 }
 
-                it("returns isCluster false") {
-                    assertThat(notEmptyCluster.isCluster()).isFalse()
+                it("returns isCluster true") {
+                    assertThat(notEmptyCluster.isCluster()).isTrue()
                 }
             }
         }

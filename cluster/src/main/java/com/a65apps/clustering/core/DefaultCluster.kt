@@ -14,7 +14,7 @@ open class DefaultCluster(protected val geoCoor: LatLng,
 
     override fun payload(): Any? = payload
 
-    override fun isCluster(): Boolean = items().size > 9
+    override fun isCluster(): Boolean = items().size > 3
 
     override fun size(): Int = items().size
 

@@ -10,14 +10,14 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 object PinProviderTest : Spek({
-    describe("PinProvider tests") {
+    describe("YandexPinProvider tests") {
         val imageProvider = mock(ImageProvider::class.java)
         val viewProvider = mock(ViewProvider::class.java)
         val animatedImageProvider = mock(AnimatedImageProvider::class.java)
         val iconStyle = mock(IconStyle::class.java)
 
-        describe("Create PinProvider from ImageProvider") {
-            val pinProvider = PinProvider.from(imageProvider)
+        describe("Create YandexPinProvider from ImageProvider") {
+            val pinProvider = YandexPinProvider.from(imageProvider)
             it("returns ImageProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ImageProvider::class.java)
@@ -25,8 +25,8 @@ object PinProviderTest : Spek({
             }
         }
 
-        describe("Create PinProvider from ImageProvider with IconStyle") {
-            val pinProvider = PinProvider.from(imageProvider, iconStyle)
+        describe("Create YandexPinProvider from ImageProvider with IconStyle") {
+            val pinProvider = YandexPinProvider.from(imageProvider, iconStyle)
             it("returns ImageProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ImageProvider::class.java)
@@ -34,8 +34,8 @@ object PinProviderTest : Spek({
             }
         }
 
-        describe("Create PinProvider from ViewProvider") {
-            val pinProvider = PinProvider.from(viewProvider)
+        describe("Create YandexPinProvider from ViewProvider") {
+            val pinProvider = YandexPinProvider.from(viewProvider)
             it("returns ViewProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ViewProvider::class.java)
@@ -43,8 +43,8 @@ object PinProviderTest : Spek({
             }
         }
 
-        describe("Create PinProvider from ViewProvider with IconStyle") {
-            val pinProvider = PinProvider.from(viewProvider, iconStyle)
+        describe("Create YandexPinProvider from ViewProvider with IconStyle") {
+            val pinProvider = YandexPinProvider.from(viewProvider, iconStyle)
             it("returns ViewProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(ViewProvider::class.java)
@@ -52,8 +52,8 @@ object PinProviderTest : Spek({
             }
         }
 
-        describe("Create PinProvider from AnimatedImageProvider with IconStyle") {
-            val pinProvider = PinProvider.from(animatedImageProvider, iconStyle)
+        describe("Create YandexPinProvider from AnimatedImageProvider with IconStyle") {
+            val pinProvider = YandexPinProvider.from(animatedImageProvider, iconStyle)
             it("returns AnimatedImageProvider when call provider()") {
                 val any = pinProvider.provider()
                 assertThat(any).isInstanceOf(AnimatedImageProvider::class.java)

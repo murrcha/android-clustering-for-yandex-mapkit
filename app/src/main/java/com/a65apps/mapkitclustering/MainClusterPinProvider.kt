@@ -5,7 +5,7 @@ import android.content.Context
 import android.graphics.PointF
 import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
-import com.a65apps.clustering.yandex.view.PinProvider
+import com.a65apps.clustering.yandex.view.YandexPinProvider
 import com.a65apps.mapkitclustering.view.ClusterPinView
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.runtime.image.ImageProvider
@@ -19,25 +19,23 @@ class MainClusterPinProvider(context: Context) : ClusterPinProvider {
             IconStyle(PointF(0.5f, 1f), null, null,
                     null, null, null, null)
     private val clusterResource =
-            PinProvider.from(ImageProvider.fromResource(context, R.drawable.cluster),
+            YandexPinProvider.from(ImageProvider.fromResource(context, R.drawable.cluster),
                     clusterIconStyle)
     private val clusterView = ClusterPinView(context)
     private val pinResource =
-            PinProvider.from(ImageProvider.fromResource(context, R.drawable.pin), pinIconStyle)
+            YandexPinProvider.from(ImageProvider.fromResource(context, R.drawable.pin),
+                    pinIconStyle)
     @SuppressLint("PrivateResource")
     private val xResource =
-            PinProvider.from(ImageProvider.fromResource(context, R.drawable.abc_ic_star_black_16dp))
+            YandexPinProvider.from(
+                    ImageProvider.fromResource(context, R.drawable.abc_ic_star_black_16dp))
 
-    override fun get(cluster: Cluster): PinProvider {
+    override fun get(cluster: Cluster): YandexPinProvider {
         return if (cluster.isCluster()) {
             clusterView.setText(cluster.size().toString())
-            PinProvider.from(ViewProvider(clusterView))
+            YandexPinProvider.from(ViewProvider(clusterView))
         } else {
             pinResource
         }
-    }
-
-    override fun getX(): PinProvider {
-        return xResource
     }
 }

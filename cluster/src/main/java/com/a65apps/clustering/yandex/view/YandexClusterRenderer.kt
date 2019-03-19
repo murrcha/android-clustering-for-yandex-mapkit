@@ -4,12 +4,9 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
-import android.util.Log
 import com.a65apps.clustering.core.Cluster
-import com.a65apps.clustering.core.Clusters
 import com.a65apps.clustering.core.ClustersDiff
 import com.a65apps.clustering.core.LatLng
-import com.a65apps.clustering.core.view.AnimationParams
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.yandex.extention.addPlacemark
 import com.a65apps.clustering.yandex.extention.toLatLng
@@ -20,10 +17,10 @@ import com.yandex.mapkit.map.Map
 
 class YandexClusterRenderer(map: Map,
                             private val imageProvider: ClusterPinProvider,
-                            private var animationParams: AnimationParams,
+                            private var yandexRenderConfig: YandexRenderConfig,
                             private val mapObjectTapListener: TapListener? = null,
                             name: String = "CLUSTER_LAYER")
-    : ClusterRenderer<ClustersDiff, AnimationParams> {
+    : ClusterRenderer<ClustersDiff, YandexRenderConfig> {
     private val layer: MapObjectCollection = map.addMapObjectLayer(name)
     private val mapObjects = mutableMapOf<Cluster, PlacemarkMapObject>()
     private var clusterAnimator: AnimatorSet = AnimatorSet()
@@ -44,7 +41,7 @@ class YandexClusterRenderer(map: Map,
     }
 
     override fun updateClusters(diffs: ClustersDiff) {
-        if (mapObjects.isEmpty() || !animationParams.animationEnabled ||
+        if (mapObjects.isEmpty() || !yandexRenderConfig.animationEnabled ||
                 diffs.currentClusters().isEmpty() || diffs.newClusters().isEmpty()) {
             simpleUpdate(diffs.newClusters())
         } else {
@@ -60,30 +57,11 @@ class YandexClusterRenderer(map: Map,
                     clusterAnimator.play(animateClusterToMarkers(cluster, markers))
                 }
             }
-            clusterAnimator.duration = animationParams.duration
-            clusterAnimator.interpolator = animationParams.interpolator
+            clusterAnimator.duration = yandexRenderConfig.duration
+            clusterAnimator.interpolator = yandexRenderConfig.interpolator
             clusterAnimator.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
-                    //TODO: убрать логирование
-                    //--------------------------
-                    val expectedPinCount = 117
-                    val markersCount = Clusters.count(mapObjects.keys)
-                    Log.d("MARKER", "RENDERER CLUSTER COUNT ${mapObjects.size}")
-                    Log.d("MARKER", "RENDERER PINS COUNT BEFORE CHECKING $markersCount")
-                    if (markersCount != expectedPinCount) {
-                        Log.e("MARKER",
-                                "COUNT DIFF ${Math.abs(expectedPinCount - markersCount)}")
-                        Log.e("MARKER", "RENDERER PINS COUNT $markersCount")
-                    }
-                    //---------------------------
-
                     checkPins(diffs.newClusters())
-
-                    //--------------------------
-                    val newMarkersCount = Clusters.count(mapObjects.keys)
-                    Log.d("MARKER", "RENDERER PINS COUNT AFTER CHECKING $newMarkersCount")
-                    Log.d("MARKER", "-------------------------------------------------------")
-                    //--------------------------
                     clusterAnimator.removeListener(this)
                 }
             })
@@ -92,7 +70,6 @@ class YandexClusterRenderer(map: Map,
     }
 
     private fun checkPins(clusters: Set<Cluster>) {
-        val start = System.currentTimeMillis()
         val iterator = mapObjects.iterator()
         while (iterator.hasNext()) {
             val mapObject = iterator.next()
@@ -108,8 +85,6 @@ class YandexClusterRenderer(map: Map,
                 createPlacemark(marker)
             }
         }
-        val end = System.currentTimeMillis()
-        Log.d("MARKER", "PIN CHECKING TIME ${end - start} ms")
     }
 
     override fun setClusters(clusters: Set<Cluster>) {
@@ -120,8 +95,8 @@ class YandexClusterRenderer(map: Map,
         }
     }
 
-    override fun config(renderConfig: AnimationParams) {
-        this.animationParams = renderConfig
+    override fun config(renderConfig: YandexRenderConfig) {
+        this.yandexRenderConfig = renderConfig
     }
 
     override fun onAdd() {
@@ -145,7 +120,7 @@ class YandexClusterRenderer(map: Map,
 
     //Вызывается для перемещения маркеров в кластер
     private fun markersToCluster(cluster: Cluster, clusters: Set<Cluster>) {
-        if (animationParams.animationEnabled) {
+        if (yandexRenderConfig.animationEnabled) {
             animateMarkersToCluster(cluster, clusters)
         } else {
             setMarkersToCluster(cluster, clusters)
@@ -168,7 +143,7 @@ class YandexClusterRenderer(map: Map,
         val animatorUpdateListener = ValueAnimator.AnimatorUpdateListener {
             val factor = it.animatedValue as Float
             for (i in 0 until movedMarkers.size) {
-                val capacity = if (animationParams.removeWithOpacityEnabled) 1f - factor else 1f
+                val capacity = if (yandexRenderConfig.removeWithOpacityEnabled) 1f - factor else 1f
                 val mapObject = movedMarkers[i]
                 val start = startCoordinates[i]
 
@@ -259,10 +234,10 @@ class YandexClusterRenderer(map: Map,
         return createPlacemark(cluster, cluster.geoCoor())
     }
 
-    private fun createPlacemark(cluster: Cluster, coords: LatLng): PlacemarkMapObject {
+    private fun createPlacemark(cluster: Cluster, latLng: LatLng): PlacemarkMapObject {
         removePlacemark(cluster)
         val image = imageProvider.get(cluster)
-        val placemark = layer.addPlacemark(coords, image.provider(), image.style)
+        val placemark = layer.addPlacemark(latLng, image.provider(), image.style)
         mapObjects[cluster] = placemark
         return placemark
     }

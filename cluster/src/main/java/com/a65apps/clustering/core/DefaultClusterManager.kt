@@ -5,6 +5,7 @@ import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.core.view.RenderConfig
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.write
 
 open class DefaultClusterManager<in C : RenderConfig>(
         private val renderer: ClusterRenderer<DefaultClustersDiff, C>,
@@ -14,7 +15,7 @@ open class DefaultClusterManager<in C : RenderConfig>(
         renderer.onAdd()
     }
 
-    private var actualClusters: MutableSet<Cluster> = mutableSetOf()
+    private var currentClusters: MutableSet<Cluster> = mutableSetOf()
     private val algorithmLock = ReentrantReadWriteLock()
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private var calculateJob: Job? = null
@@ -37,74 +38,56 @@ open class DefaultClusterManager<in C : RenderConfig>(
     private suspend fun calcDiffs(): DefaultClustersDiff? {
         return coroutineScope {
             val newClusters = updateClusters()
-            val actualClusterCount = clusterCount(actualClusters)
+            val currentClustersCount = clusterCount(currentClusters)
             val newClusterCount = clusterCount(newClusters)
-            var diffs: DefaultClustersDiff? = null
-            if (actualClusterCount != newClusterCount ||
-                    actualClusters.size != newClusters.size) {
-                diffs = DefaultClustersDiff(actualClusters, newClusters)
+            if (currentClustersCount != newClusterCount ||
+                    currentClusters.size != newClusters.size) {
+                DefaultClustersDiff(currentClusters, newClusters)
+            } else {
+                null
             }
-            diffs
         }
     }
 
     override fun clearItems() {
-        algorithmLock.writeLock().lock()
-        try {
+        algorithmLock.write {
             algorithm.clearItems()
             onModifyRawClusters(true)
-        } finally {
-            algorithmLock.writeLock().unlock()
         }
     }
 
     override fun setItems(clusters: Set<Cluster>) {
-        algorithmLock.writeLock().lock()
-        try {
+        algorithmLock.write {
             algorithm.addItems(clusters)
             calculateClusters()
-        } finally {
-            algorithmLock.writeLock().unlock()
         }
     }
 
     override fun addItem(cluster: Cluster) {
-        algorithmLock.writeLock().lock()
-        try {
+        algorithmLock.write {
             algorithm.addItem(cluster)
             onModifyRawClusters(false)
-        } finally {
-            algorithmLock.writeLock().unlock()
         }
     }
 
     override fun removeItem(cluster: Cluster) {
-        algorithmLock.writeLock().lock()
-        try {
+        algorithmLock.write {
             algorithm.removeItem(cluster)
             onModifyRawClusters(false)
-        } finally {
-            algorithmLock.writeLock().unlock()
         }
     }
 
     override fun addItems(clusters: Set<Cluster>) {
-        algorithmLock.writeLock().lock()
-        try {
+        algorithmLock.write {
             algorithm.addItems(clusters)
             onModifyRawClusters(false)
-        } finally {
-            algorithmLock.writeLock().unlock()
         }
     }
 
     override fun removeItems(clusters: Set<Cluster>) {
-        algorithmLock.writeLock().lock()
-        try {
+        algorithmLock.write {
             algorithm.removeItems(clusters)
             onModifyRawClusters(false)
-        } finally {
-            algorithmLock.writeLock().unlock()
         }
     }
 
@@ -114,16 +97,16 @@ open class DefaultClusterManager<in C : RenderConfig>(
 
     private fun callRenderer(diffs: DefaultClustersDiff) {
         renderer.updateClusters(diffs)
-        actualClusters.clear()
-        actualClusters.addAll(diffs.newClusters())
+        currentClusters.clear()
+        currentClusters.addAll(diffs.newClusters())
     }
 
     private fun onModifyRawClusters(isClear: Boolean) {
-        actualClusters.clear()
+        currentClusters.clear()
         if (!isClear) {
-            actualClusters.addAll(updateClusters())
+            currentClusters.addAll(updateClusters())
         }
-        renderer.setClusters(actualClusters)
+        renderer.setClusters(currentClusters)
     }
 
     private fun clusterCount(clusters: Set<Cluster>): Int {

@@ -1,6 +1,5 @@
 package com.a65apps.clustering.core.algorithm
 
-import android.util.Log
 import com.a65apps.clustering.core.*
 import com.a65apps.clustering.core.geometry.Bounds
 import com.a65apps.clustering.core.geometry.Point
@@ -16,13 +15,13 @@ private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
  * hierarchical.
  * <p/>
  * High level algorithm:<br>
- * 1. Iterate over size in the order they were added (candidate clusters).<br>
+ * 1. Iterate over items in the order they were added (candidate clusters).<br>
  * 2. Create a cluster with the center of the item. <br>
- * 3. Add all size that are within a certain distance to the cluster. <br>
- * 4. Move any size out of an existing cluster if they are closer to another cluster. <br>
- * 5. Remove those size from the list of candidate clusters.
+ * 3. Add all items that are within a certain distance to the cluster. <br>
+ * 4. Move any items out of an existing cluster if they are closer to another cluster. <br>
+ * 5. Remove those items from the list of candidate clusters.
  * <p/>
- * Clusters have the center of the first element (not the centroid of the size within it).
+ * Clusters have the center of the first element (not the centroid of the items within it).
  */
 open class NonHierarchicalDistanceBasedAlgorithm(
         private val clusterProvider: ClusterProvider = DefaultClusterProvider()) :
@@ -133,7 +132,6 @@ open class NonHierarchicalDistanceBasedAlgorithm(
                 }
             }
         }
-        Log.d("MARKER", "ALGORITHM PINS COUNT ${Clusters.count(resultingClusters)}")
         return resultingClusters
     }
 
