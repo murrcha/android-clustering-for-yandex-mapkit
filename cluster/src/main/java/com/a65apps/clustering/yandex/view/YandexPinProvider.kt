@@ -5,7 +5,7 @@ import com.yandex.runtime.image.AnimatedImageProvider
 import com.yandex.runtime.image.ImageProvider
 import com.yandex.runtime.ui_view.ViewProvider
 
-class PinProvider {
+open class YandexPinProvider {
     private var imageProvider: ImageProvider? = null
     private var viewProvider: ViewProvider? = null
     private var animatedImageProvider: AnimatedImageProvider? = null
@@ -32,20 +32,20 @@ class PinProvider {
     companion object {
         @JvmStatic
         fun from(imageProvider: ImageProvider,
-                 iconStyle: IconStyle? = null): PinProvider {
-            return PinProvider(imageProvider, iconStyle)
+                 iconStyle: IconStyle? = null): YandexPinProvider {
+            return YandexPinProvider(imageProvider, iconStyle)
         }
 
         @JvmStatic
         fun from(viewProvider: ViewProvider,
-                 iconStyle: IconStyle? = null): PinProvider {
-            return PinProvider(viewProvider, iconStyle)
+                 iconStyle: IconStyle? = null): YandexPinProvider {
+            return YandexPinProvider(viewProvider, iconStyle)
         }
 
         @JvmStatic
         fun from(animatedImageProvider: AnimatedImageProvider,
-                 iconStyle: IconStyle): PinProvider {
-            return PinProvider(animatedImageProvider, iconStyle)
+                 iconStyle: IconStyle): YandexPinProvider {
+            return YandexPinProvider(animatedImageProvider, iconStyle)
         }
     }
 

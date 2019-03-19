@@ -1,9 +1,6 @@
 package com.a65apps.clustering.core.algorithm
 
-import com.a65apps.clustering.core.ClusteredMarker
-import com.a65apps.clustering.core.LatLng
-import com.a65apps.clustering.core.Marker
-import com.a65apps.clustering.core.VisibleRectangularRegion
+import com.a65apps.clustering.core.*
 import com.a65apps.clustering.core.geometry.Bounds
 import com.a65apps.clustering.core.geometry.Point
 import com.a65apps.clustering.core.projection.SphericalMercatorProjection
@@ -11,7 +8,7 @@ import com.a65apps.clustering.core.quadtree.PointQuadTree
 import kotlin.math.sqrt
 
 private val PROJECTION = SphericalMercatorProjection(1.0)
-private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.1f
+private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
 
 /**
  * A simple clustering algorithm with O(nlog n) performance. Resulting clusters are not
@@ -26,7 +23,9 @@ private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.1f
  * <p/>
  * Clusters have the center of the first element (not the centroid of the items within it).
  */
-class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
+open class NonHierarchicalDistanceBasedAlgorithm(
+        private val clusterProvider: ClusterProvider = DefaultClusterProvider()) :
+        Algorithm {
 
     private var ratioForClustering = DEFAULT_RATIO_FOR_CLUSTERING
 
@@ -40,41 +39,51 @@ class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
      */
     private val quadTree = PointQuadTree<QuadItem>(0.0, 1.0, 0.0, 1.0)
 
-    override fun addMarker(marker: Marker) {
-        val quadItem = QuadItem(marker as ClusteredMarker)
+    override fun addItem(item: Cluster) {
+        val quadItem = QuadItem(item as DefaultCluster)
         synchronized(quadTree) {
             quadItems.add(quadItem)
             quadTree.add(quadItem)
         }
     }
 
-    override fun addMarkers(markers: Collection<Marker>) = markers.forEach { addMarker(it) }
+    override fun addItems(items: Collection<Cluster>) = items.forEach { addItem(it) }
 
-    override fun removeMarker(marker: Marker) {
+    override fun removeItem(item: Cluster) {
         // QuadItem delegates hashcode() and equals() to its item so,
         //   removing any QuadItem to that item will remove the item
-        val quadItem = QuadItem(marker as ClusteredMarker)
+        val quadItem = QuadItem(item as DefaultCluster)
         synchronized(quadTree) {
             quadItems.remove(quadItem)
             quadTree.remove(quadItem)
         }
     }
 
-    override fun clearMarkers() {
+    override fun removeItems(items: Collection<Cluster>) {
+        synchronized(quadTree) {
+            items.forEach {
+                val quadItem = QuadItem(it as DefaultCluster)
+                quadItems.remove(quadItem)
+                quadTree.remove(quadItem)
+            }
+        }
+    }
+
+    override fun clearItems() {
         synchronized(quadTree) {
             quadItems.clear()
             quadTree.clear()
         }
     }
 
-    override fun calculate(visibleRectangularRegion: VisibleRectangularRegion): Set<Marker> {
+    override fun calculate(visibleRectangularRegion: VisibleRectangularRegion): Set<Cluster> {
         val zoomSpecificSpan = getZoomSpecificSpan(visibleRectangularRegion)
 
         val visitedCandidates = mutableSetOf<QuadItem>()
         val resultingQuadItems = mutableSetOf<QuadItem>()
         val distanceToCluster = mutableMapOf<QuadItem, Double>()
-        val itemToCluster = mutableMapOf<QuadItem, ClusteredMarker>()
-        val resultingMarkers = mutableSetOf<Marker>()
+        val itemToCluster = mutableMapOf<QuadItem, Cluster>()
+        val resultingClusters = mutableSetOf<Cluster>()
 
         synchronized(quadTree) {
             for (candidate in quadItems) {
@@ -87,14 +96,14 @@ class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
                 val clusterItems: Collection<QuadItem>
                 clusterItems = quadTree.search(searchBounds)
                 if (clusterItems.size == 1) {
-                    // Only the current marker is in range. Just add the single item to the results.
+                    // Only the current cluster is in range. Just add the single item to the results.
                     resultingQuadItems.add(candidate)
                     visitedCandidates.add(candidate)
                     distanceToCluster[candidate] = 0.0
                     continue
                 }
 
-                val cluster = ClusteredMarker(candidate.marker.getGeoCoor())
+                val cluster = clusterProvider.get(candidate.cluster)
                 resultingQuadItems.add(QuadItem(cluster))
 
                 for (clusterItem in clusterItems) {
@@ -106,32 +115,30 @@ class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
                             continue
                         }
                         // Move item to the closer cluster.
-                        itemToCluster[clusterItem]?.rawMarkers?.remove(clusterItem.marker)
+                        itemToCluster[clusterItem]?.removeItem(clusterItem.cluster)
                     }
                     distanceToCluster[clusterItem] = distance
-                    cluster.rawMarkers.add(clusterItem.marker)
+                    cluster.addItem(clusterItem.cluster)
                     itemToCluster[clusterItem] = cluster
                 }
                 visitedCandidates.addAll(clusterItems)
             }
 
-            resultingQuadItems.forEach { resultingMarkers.add(it.marker) }
+            resultingQuadItems.forEach {
+                if (it.cluster.isCluster()) {
+                    resultingClusters.add(it.cluster)
+                } else {
+                    resultingClusters.addAll(it.cluster.items())
+                }
+            }
         }
-        return resultingMarkers
+        return resultingClusters
     }
 
     private fun getZoomSpecificSpan(visibleRectangularRegion: VisibleRectangularRegion): Double {
         val point1 = PROJECTION.toPoint(visibleRectangularRegion.topLeft)
         val point2 = PROJECTION.toPoint(visibleRectangularRegion.bottomRight)
         return sqrt(distanceSquared(point1, point2)) * ratioForClustering
-    }
-
-    override fun getMarkers(): Collection<Marker> {
-        val markers = mutableListOf<Marker>()
-        synchronized(quadTree) {
-            quadItems.forEach { markers.add(it.marker) }
-        }
-        return markers
     }
 
     override fun setRatioForClustering(value: Float) {
@@ -149,17 +156,17 @@ class NonHierarchicalDistanceBasedAlgorithm : Algorithm {
                 p.y - halfSpan, p.y + halfSpan)
     }
 
-    private class QuadItem(val marker: Marker) : PointQuadTree.Item {
-        val position: LatLng = marker.getGeoCoor()
+    private class QuadItem(val cluster: Cluster) : PointQuadTree.Item {
+        val position: LatLng = cluster.geoCoor()
         override val point: Point
             get() = PROJECTION.toPoint(position)
 
         override fun hashCode(): Int {
-            return marker.hashCode()
+            return cluster.hashCode()
         }
 
         override fun equals(other: Any?): Boolean {
-            return (other as? QuadItem)?.marker?.equals(marker) ?: false
+            return (other as? QuadItem)?.cluster?.equals(cluster) ?: false
         }
     }
 }
