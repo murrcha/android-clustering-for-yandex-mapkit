@@ -5,7 +5,7 @@ import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.core.view.RenderConfig
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.write
+import kotlin.concurrent.withLock
 
 open class DefaultClusterManager<in C : RenderConfig>(
         private val renderer: ClusterRenderer<DefaultClustersDiff, C>,
@@ -50,42 +50,42 @@ open class DefaultClusterManager<in C : RenderConfig>(
     }
 
     override fun clearItems() {
-        algorithmLock.write {
+        algorithmLock.writeLock().withLock {
             algorithm.clearItems()
             onModifyRawClusters(true)
         }
     }
 
     override fun setItems(clusters: Set<Cluster>) {
-        algorithmLock.write {
+        algorithmLock.writeLock().withLock {
             algorithm.addItems(clusters)
             calculateClusters()
         }
     }
 
     override fun addItem(cluster: Cluster) {
-        algorithmLock.write {
+        algorithmLock.writeLock().withLock {
             algorithm.addItem(cluster)
             onModifyRawClusters(false)
         }
     }
 
     override fun removeItem(cluster: Cluster) {
-        algorithmLock.write {
+        algorithmLock.writeLock().withLock {
             algorithm.removeItem(cluster)
             onModifyRawClusters(false)
         }
     }
 
     override fun addItems(clusters: Set<Cluster>) {
-        algorithmLock.write {
+        algorithmLock.writeLock().withLock {
             algorithm.addItems(clusters)
             onModifyRawClusters(false)
         }
     }
 
     override fun removeItems(clusters: Set<Cluster>) {
-        algorithmLock.write {
+        algorithmLock.writeLock().withLock {
             algorithm.removeItems(clusters)
             onModifyRawClusters(false)
         }
