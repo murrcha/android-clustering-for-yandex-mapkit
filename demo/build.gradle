@@ -1,0 +1,53 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId 'com.a65apps.mapkitclustering'
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    buildTypes {
+        debug {
+            buildConfigField 'String', 'YANDEX_MAP_KIT_KEY', "\"${getMySecret('YANDEX_MAP_KIT_KEY')}\""
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+static def getMySecret(String property) {
+    Properties props = new Properties()
+    def file = new File('secret.properties')
+    if (!file.exists()) {
+        return null
+    }
+    props.load(new FileInputStream(file))
+    return props[property]
+}
+
+dependencies {
+    implementation project(':library')
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlinVersion"
+    implementation "androidx.appcompat:appcompat:$versions.appCompatVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$versions.constraintlayoutVersion"
+
+    testImplementation "junit:junit:$versions.junit4Version"
+    androidTestImplementation "androidx.test:runner:$versions.testRunnerVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$versions.espressoVersion"
+
+    //permission dispatcher
+    implementation("com.github.hotchemi:permissionsdispatcher:$versions.permissionsdispatcherVersion") {
+        // if you don't use android.app.Fragment you can exclude support for them
+        exclude module: "support-v13"
+    }
+    annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:$versions.permissionsdispatcherVersion"
+}

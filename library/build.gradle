@@ -1,0 +1,71 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
+apply plugin: 'de.mannodermaus.android-junit5'
+apply from: "$project.rootDir/jacoco.gradle"
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 1
+        versionName '1.0'
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            debuggable false
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+            testCoverageEnabled true
+        }
+    }
+
+    sourceSets.each {
+        it.java.srcDirs += "src/$it.name/java"
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+        junitPlatform {
+            filters {
+                engines {
+                    include 'spek2'
+                }
+            }
+            jacocoOptions {
+                html.enabled = true
+                xml.enabled = false
+                csv.enabled = false
+                unitTests.all {
+                    testLogging.events = ['passed', 'skipped', 'failed']
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    api "com.yandex.android:mapkit:$project.ext.mapkitVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$project.ext.kotlinVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$project.ext.coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$project.ext.coroutinesVersion"
+
+    // AssertJ
+    testImplementation "org.assertj:assertj-core:$project.ext.assertjVersion"
+    // Spek
+    testImplementation "org.spekframework.spek2:spek-dsl-jvm:$project.ext.spekVersion"
+    testImplementation "org.spekframework.spek2:spek-runner-junit5:$project.ext.spekVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect:$project.ext.kotlinVersion"
+    // Mockito
+    testImplementation "org.mockito:mockito-inline:$project.ext.mockitoVersion"
+
+    testImplementation "junit:junit:$project.ext.junit4Version"
+    androidTestImplementation "com.android.support.test:runner:$project.ext.testRunnerVersion"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$project.ext.espressoVersion"
+}

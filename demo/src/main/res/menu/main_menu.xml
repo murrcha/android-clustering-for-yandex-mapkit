@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/set_markers" android:title="Set clusters"/>
+    <item android:id="@+id/clear_markers" android:title="Clear clusters"/>
+    <item android:id="@+id/add_marker" android:title="Add one cluster" />
+    <item android:id="@+id/remove_marker" android:title="Remove one cluster" />
+    <item android:id="@+id/add_markers" android:title="Add 10 clusters" />
+    <item android:id="@+id/remove_markers" android:title="Remove added clusters" />
+    <item android:id="@+id/switch_activity" android:title="Switch activity"/>
+</menu>
