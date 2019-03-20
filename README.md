@@ -1,3 +1,4 @@
-# Yandex MapKit Clustering
+# android-clustering-for-yandex-mapkit
+Android Clustering library for Yandex mapkit
 
-Clusterization library for yandex mapkit.
+![demogif](/images/demo.gif)
