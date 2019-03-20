@@ -1,7 +1,9 @@
 package com.a65apps.clustering.core
 
-open class DefaultClustersDiff(private val currentClusters: Set<Cluster>,
-                               private val newClusters: Set<Cluster> = emptySet()) : ClustersDiff {
+open class DefaultClustersDiff(current: Set<Cluster>,
+                               new: Set<Cluster> = emptySet()) : ClustersDiff {
+    private val currentClusters = current.toMutableSet()
+    private val newClusters = new.toMutableSet()
     private val isCollapsing = newClusters.size <= currentClusters.size
     private val transitions = transitionsMap(currentClusters, newClusters)
 
