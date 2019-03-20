@@ -64,6 +64,8 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-reflect:$project.ext.kotlinVersion"
     // Mockito
     testImplementation "org.mockito:mockito-inline:$project.ext.mockitoVersion"
+    // Coroutines
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$project.ext.coroutinesVersion"
 
     testImplementation "junit:junit:$project.ext.junit4Version"
     androidTestImplementation "com.android.support.test:runner:$project.ext.testRunnerVersion"

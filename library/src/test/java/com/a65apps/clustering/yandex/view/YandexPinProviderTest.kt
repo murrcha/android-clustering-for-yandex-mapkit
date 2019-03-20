@@ -9,7 +9,7 @@ import org.mockito.Mockito.mock
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-object PinProviderTest : Spek({
+object YandexPinProviderTest : Spek({
     describe("YandexPinProvider tests") {
         val imageProvider = mock(ImageProvider::class.java)
         val viewProvider = mock(ViewProvider::class.java)
