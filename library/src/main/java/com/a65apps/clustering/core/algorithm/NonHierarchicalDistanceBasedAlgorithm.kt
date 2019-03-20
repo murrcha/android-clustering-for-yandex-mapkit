@@ -156,7 +156,7 @@ open class NonHierarchicalDistanceBasedAlgorithm(
                 p.y - halfSpan, p.y + halfSpan)
     }
 
-    private class QuadItem(val cluster: Cluster) : PointQuadTree.Item {
+    class QuadItem(val cluster: Cluster) : PointQuadTree.Item {
         val position: LatLng = cluster.geoCoor()
         override val point: Point
             get() = PROJECTION.toPoint(position)
