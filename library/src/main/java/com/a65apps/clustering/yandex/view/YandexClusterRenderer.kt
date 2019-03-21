@@ -10,12 +10,11 @@ import com.a65apps.clustering.core.LatLng
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.yandex.extention.addPlacemark
 import com.a65apps.clustering.yandex.extention.toLatLng
-import com.a65apps.clustering.yandex.extention.toPoint
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.map.Map
 
-class YandexClusterRenderer(map: Map,
+class YandexClusterRenderer(private val map: Map,
                             private val imageProvider: ClusterPinProvider,
                             private var yandexRenderConfig: YandexRenderConfig,
                             private val mapObjectTapListener: TapListener? = null,
@@ -47,13 +46,9 @@ class YandexClusterRenderer(map: Map,
             val transitions = diffs.transitions()
             clusterAnimator.cancel()
             clusterAnimator = AnimatorSet()
-            if (diffs.collapsing()) {
-                for ((cluster, markers) in transitions) {
-                    clusterAnimator.play(animateMarkersToCluster(cluster, markers))
-                }
-            } else {
-                for ((cluster, markers) in transitions) {
-                    clusterAnimator.play(animateClusterToMarkers(cluster, markers))
+            for ((cluster, markers) in transitions) {
+                clusterAnimation(cluster, markers, diffs.collapsing())?.let {
+                    clusterAnimator.play(it)
                 }
             }
             clusterAnimator.duration = yandexRenderConfig.duration
@@ -65,6 +60,15 @@ class YandexClusterRenderer(map: Map,
                 }
             })
             clusterAnimator.start()
+        }
+    }
+
+    private fun clusterAnimation(cluster: Cluster, markers: Set<Cluster>,
+                                 isCollapsing: Boolean): Animator? {
+        return if (isCollapsing) {
+            animateMarkersToCluster(cluster, markers)
+        } else {
+            animateClusterToMarkers(cluster, markers)
         }
     }
 
@@ -122,24 +126,27 @@ class YandexClusterRenderer(map: Map,
     }
 
     //Перемещение маркеров в кластер с анимацией
-    private fun animateMarkersToCluster(cluster: Cluster, clusters: Set<Cluster>): Animator {
+    private fun animateMarkersToCluster(cluster: Cluster, clusters: Set<Cluster>): Animator? {
         //коллекция маркеров которые будут анимироваться в кластер
-        val movedMarkers = mutableListOf<PlacemarkMapObject>()
-        val startCoordinates = mutableListOf<LatLng>()
+        val movedMarkers = mutableMapOf<PlacemarkMapObject, LatLng>()
+        //val startCoordinates = mutableListOf<LatLng>()
+        val clusterPoint = cluster.geoCoor()
         clusters.forEach { marker ->
             mapObjects[marker]?.let { mapObject ->
-                movedMarkers.add(mapObject)
-                startCoordinates.add(mapObject.geometry.toLatLng())
+                val start = mapObject.geometry.toLatLng()
+                if (needAnimateTransition(start, clusterPoint)) {
+                    movedMarkers[mapObject] = start
+                }
             }
         }
-        val clusterPoint = cluster.geoCoor().toPoint()
+        if (movedMarkers.isEmpty()) {
+            return null
+        }
         val animator = ValueAnimator.ofFloat(0f, 1f)
         val animatorUpdateListener = ValueAnimator.AnimatorUpdateListener {
             val factor = it.animatedValue as Float
-            for (i in 0 until movedMarkers.size) {
+            for ((mapObject, start) in movedMarkers) {
                 val capacity = if (yandexRenderConfig.removeWithOpacityEnabled) 1f - factor else 1f
-                val mapObject = movedMarkers[i]
-                val start = startCoordinates[i]
 
                 val kx = clusterPoint.latitude - start.latitude
                 val ky = clusterPoint.longitude - start.longitude
@@ -165,20 +172,23 @@ class YandexClusterRenderer(map: Map,
     }
 
     //Перемещение маркеров из кластера с анимацией
-    private fun animateClusterToMarkers(cluster: Cluster, clusters: Set<Cluster>): Animator {
+    private fun animateClusterToMarkers(cluster: Cluster, clusters: Set<Cluster>): Animator? {
         //коллекция маркеров которые будут анимироваться в кластер
-        val movedMarkers = mutableListOf<PlacemarkMapObject>()
-        val to = mutableListOf<Point>()
+        val movedMarkers = mutableMapOf<PlacemarkMapObject, LatLng>()
         val clusterPoint = cluster.geoCoor()
         clusters.forEach {
-            to.add(it.geoCoor().toPoint())
+            val end = it.geoCoor()
+            if (needAnimateTransition(clusterPoint, end)) {
+                movedMarkers[createPlacemark(it, clusterPoint)] = end
+            }
+        }
+        if (movedMarkers.isEmpty()) {
+            return null
         }
         val animator = ValueAnimator.ofFloat(0f, 1f)
         val animatorUpdateListener = ValueAnimator.AnimatorUpdateListener {
             val factor = it.animatedValue as Float
-            for (i in 0 until movedMarkers.size) {
-                val mapObject = movedMarkers[i]
-                val point = to[i]
+            for ((mapObject, point) in movedMarkers) {
                 val kx = point.latitude - clusterPoint.latitude
                 val ky = point.longitude - clusterPoint.longitude
                 val lat = clusterPoint.latitude + (factor * kx)
@@ -194,10 +204,7 @@ class YandexClusterRenderer(map: Map,
             }
 
             override fun onAnimationStart(animation: Animator?) {
-                clusters.forEach {
-                    removePlacemark(cluster)
-                    movedMarkers.add(createPlacemark(it, cluster.geoCoor()))
-                }
+                removePlacemark(cluster)
             }
         })
         return animator
@@ -236,5 +243,19 @@ class YandexClusterRenderer(map: Map,
             mapObject.geometry = point
             mapObject.opacity = opacity
         }
+    }
+
+    private fun needAnimateTransition(start: LatLng, end: LatLng): Boolean {
+        return !yandexRenderConfig.optimizeAnimations || pointInVisibleRegion(
+                start) || pointInVisibleRegion(end)
+    }
+
+    private fun pointInVisibleRegion(point: LatLng): Boolean {
+        val minLongitude = map.visibleRegion.topLeft.longitude
+        val maxLongitude = map.visibleRegion.topRight.longitude
+        val minLatitude = map.visibleRegion.bottomLeft.latitude
+        val maxLatitude = map.visibleRegion.topLeft.latitude
+        return point.longitude in minLongitude..maxLongitude &&
+                point.latitude in minLatitude..maxLatitude
     }
 }
