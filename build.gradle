@@ -20,7 +20,8 @@ buildscript {
             'mockitoVersion'              : '2.24.5',
             'spekVersion'                 : '2.0.1',
             'testRunnerVersion'           : '1.1.2-alpha01',
-            'jacocoVersion'               : '0.8.3'
+            'jacocoVersion'               : '0.8.3',
+            'coverallsVersion'            : '2.4.0'
     ]
 
     repositories {
@@ -31,6 +32,7 @@ buildscript {
         classpath "com.android.tools.build:gradle:${versions.gradleVersion}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlinVersion}"
         classpath "de.mannodermaus.gradle.plugins:android-junit5:${versions.junit5PluginVersion}"
+        classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:${versions.coverallsVersion}"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files

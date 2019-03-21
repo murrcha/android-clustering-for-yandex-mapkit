@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'de.mannodermaus.android-junit5'
+apply plugin: 'com.github.kt3k.coveralls'
 apply from: "$project.rootDir/jacoco.gradle"
 
 android {
@@ -40,7 +41,7 @@ android {
             }
             jacocoOptions {
                 html.enabled = true
-                xml.enabled = false
+                xml.enabled = true
                 csv.enabled = false
                 unitTests.all {
                     testLogging.events = ['passed', 'skipped', 'failed']
@@ -48,6 +49,15 @@ android {
             }
         }
     }
+}
+
+coveralls {
+    jacocoReportPath = "${buildDir}/jacocoReport/jacocoTestReportDebug/jacocoTestReportDebug.xml"
+}
+
+tasks.coveralls {
+    dependsOn 'jacocoTestReportDebug'
+    onlyIf { System.env.'CI' }
 }
 
 dependencies {
