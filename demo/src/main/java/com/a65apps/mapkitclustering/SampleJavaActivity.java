@@ -10,6 +10,7 @@ import com.a65apps.clustering.core.Cluster;
 import com.a65apps.clustering.core.ClustersDiff;
 import com.a65apps.clustering.core.DefaultCluster;
 import com.a65apps.clustering.core.VisibleRect;
+import com.a65apps.clustering.core.algorithm.DefaultAlgorithmParameter;
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm;
 import com.a65apps.clustering.core.view.ClusterRenderer;
 import com.a65apps.clustering.yandex.YandexClusterManager;
@@ -84,9 +85,12 @@ public class SampleJavaActivity extends AppCompatActivity {
                         "RENDER_LAYER");
         clusterManager = new YandexClusterManager(clusterRenderer,
                 new NonHierarchicalDistanceBasedAlgorithm(new CustomClusterProvider()),
-                new VisibleRect(
-                        PointExtKt.toLatLng(map.getVisibleRegion().getTopLeft()),
-                        PointExtKt.toLatLng(map.getVisibleRegion().getBottomRight())));
+                new DefaultAlgorithmParameter(
+                        new VisibleRect(
+                                PointExtKt.toLatLng(map.getVisibleRegion().getTopLeft()),
+                                PointExtKt.toLatLng(map.getVisibleRegion().getBottomRight())),
+                        (int) map.getCameraPosition().getZoom()
+                ));
         map.addCameraListener(clusterManager);
         map.addInputListener(inputListener);
         map.move(TestData.INSTANCE.getCAMERA_POSITION());

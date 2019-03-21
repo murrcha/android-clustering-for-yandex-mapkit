@@ -22,16 +22,21 @@ notifications:
     on_success: never
     on_failure: always
 
-stages:
-- build
-- test
-- report
+#stages:
+#- build
+#- test
+#- report
 
-jobs:
-  include:
-  - stage: build
-    script: ./gradlew assembleDebug
-  - stage: test
-    script: ./gradlew testDebugUnitTest
-  - stage: report
-    script: ./gradlew library:jacocoTestReportDebug library:coveralls
+#jobs:
+#  include:
+#  - stage: build
+#    script: ./gradlew assembleDebug
+#  - stage: test
+#    script: ./gradlew testDebugUnitTest
+#  - stage: report
+#    script: ./gradlew library:jacocoTestReportDebug library:coveralls
+
+script:
+  - ./gradlew assembleDebug
+  - ./gradlew testDebugUnitTest
+  - ./gradlew library:jacocoTestReportDebug library:coveralls
