@@ -1,5 +1,6 @@
 package com.a65apps.clustering.core
 
+import com.a65apps.clustering.core.algorithm.DefaultAlgorithmParameter
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.yandex.view.YandexClusterRenderer
 import kotlinx.coroutines.Dispatchers
@@ -30,8 +31,10 @@ object DefaultClusterManagerTest : Spek({
 
         val renderer = mock(YandexClusterRenderer::class.java)
         val algorithm = mock(NonHierarchicalDistanceBasedAlgorithm::class.java)
-        val visibleRectangularRegion = mock(VisibleRect::class.java)
-        val manager = DefaultClusterManager(renderer, algorithm, visibleRectangularRegion)
+        val visibleRect = mock(VisibleRect::class.java)
+        val zoom = 10
+        val parameter = DefaultAlgorithmParameter(visibleRect, zoom)
+        val manager = DefaultClusterManager(renderer, algorithm, parameter)
 
         context("Manager call clearItems") {
             it("Algorithm call clearItems") {

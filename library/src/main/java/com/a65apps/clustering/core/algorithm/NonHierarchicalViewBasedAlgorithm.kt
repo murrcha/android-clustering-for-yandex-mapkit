@@ -11,7 +11,7 @@ open class NonHierarchicalViewBasedAlgorithm(clusterProvider: ClusterProvider =
     }
 
     private fun visibleBounds(): Bounds {
-        val rect = visibleRect
+        val rect = parameter!!.visibleRect
         rect?.let {
             val topLeft = PROJECTION.toPoint(rect.topLeft)
             val bottomRight = PROJECTION.toPoint(rect.bottomRight)

@@ -1,6 +1,7 @@
 package com.a65apps.clustering.core
 
 import com.a65apps.clustering.core.algorithm.Algorithm
+import com.a65apps.clustering.core.algorithm.DefaultAlgorithmParameter
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.core.view.RenderConfig
 import kotlinx.coroutines.*
@@ -9,8 +10,8 @@ import kotlin.concurrent.withLock
 
 open class DefaultClusterManager<in C : RenderConfig>(
         private val renderer: ClusterRenderer<DefaultClustersDiff, C>,
-        private var algorithm: Algorithm,
-        private var visibleRect: VisibleRect) : ClusterManager {
+        private var algorithm: Algorithm<DefaultAlgorithmParameter>,
+        private var algorithmParameter: DefaultAlgorithmParameter) : ClusterManager {
     init {
         renderer.onAdd()
     }
@@ -20,8 +21,8 @@ open class DefaultClusterManager<in C : RenderConfig>(
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private var calculateJob: Job? = null
 
-    fun calculateClusters(visibleRect: VisibleRect) {
-        this.visibleRect = visibleRect
+    fun calculateClusters(algorithmParameter: DefaultAlgorithmParameter) {
+        this.algorithmParameter = algorithmParameter
         calculateJob?.cancel()
         calculateJob = calculateClusters()
     }
@@ -95,7 +96,7 @@ open class DefaultClusterManager<in C : RenderConfig>(
         }
     }
 
-    private fun updateClusters(): Set<Cluster> = algorithm.calculate(visibleRect)
+    private fun updateClusters(): Set<Cluster> = algorithm.calculate(algorithmParameter)
 
     private fun callRenderer(diffs: DefaultClustersDiff) {
         renderer.updateClusters(diffs)

@@ -25,8 +25,8 @@ private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
  */
 open class NonHierarchicalDistanceBasedAlgorithm(
         private val clusterProvider: ClusterProvider = DefaultClusterProvider()) :
-        Algorithm {
-    protected var visibleRect: VisibleRect? = null
+        Algorithm<DefaultAlgorithmParameter> {
+    protected var parameter: DefaultAlgorithmParameter? = null
     private var ratioForClustering = DEFAULT_RATIO_FOR_CLUSTERING
 
     /**
@@ -76,10 +76,9 @@ open class NonHierarchicalDistanceBasedAlgorithm(
         }
     }
 
-    override fun calculate(visibleRect: VisibleRect): Set<Cluster> {
-        this.visibleRect = visibleRect
-        val zoomSpecificSpan = getZoomSpecificSpan(visibleRect)
-
+    override fun calculate(parameter: DefaultAlgorithmParameter): Set<Cluster> {
+        this.parameter = parameter
+        val zoomSpecificSpan = getZoomSpecificSpan(parameter.visibleRect)
         val visitedCandidates = mutableSetOf<QuadItem>()
         val resultingQuadItems = mutableSetOf<QuadItem>()
         val distanceToCluster = mutableMapOf<QuadItem, Double>()
@@ -162,7 +161,7 @@ open class NonHierarchicalDistanceBasedAlgorithm(
     }
 
     class QuadItem(val cluster: Cluster) : PointQuadTree.Item {
-        val position: LatLng = cluster.geoCoor()
+        private val position: LatLng = cluster.geoCoor()
         override val point: Point
             get() = PROJECTION.toPoint(position)
 
