@@ -7,7 +7,7 @@ import com.a65apps.clustering.core.projection.SphericalMercatorProjection
 import com.a65apps.clustering.core.quadtree.PointQuadTree
 import kotlin.math.sqrt
 
-private val PROJECTION = SphericalMercatorProjection(1.0)
+val PROJECTION = SphericalMercatorProjection(1.0)
 private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
 
 /**
@@ -26,7 +26,7 @@ private const val DEFAULT_RATIO_FOR_CLUSTERING = 0.5f
 open class NonHierarchicalDistanceBasedAlgorithm(
         private val clusterProvider: ClusterProvider = DefaultClusterProvider()) :
         Algorithm<DefaultAlgorithmParameter> {
-
+    protected var parameter: DefaultAlgorithmParameter? = null
     private var ratioForClustering = DEFAULT_RATIO_FOR_CLUSTERING
 
     /**
@@ -37,7 +37,7 @@ open class NonHierarchicalDistanceBasedAlgorithm(
     /**
      * Any modifications should be synchronized on mQuadTree.
      */
-    private val quadTree = PointQuadTree<QuadItem>(0.0, 1.0, 0.0, 1.0)
+    protected val quadTree = PointQuadTree<QuadItem>(0.0, 1.0, 0.0, 1.0)
 
     override fun addItem(item: Cluster) {
         val quadItem = QuadItem(item as DefaultCluster)
@@ -77,8 +77,8 @@ open class NonHierarchicalDistanceBasedAlgorithm(
     }
 
     override fun calculate(parameter: DefaultAlgorithmParameter): Set<Cluster> {
-        val zoomSpecificSpan = getZoomSpecificSpan(parameter.visibleRect())
-
+        this.parameter = parameter
+        val zoomSpecificSpan = getZoomSpecificSpan(parameter.visibleRect)
         val visitedCandidates = mutableSetOf<QuadItem>()
         val resultingQuadItems = mutableSetOf<QuadItem>()
         val distanceToCluster = mutableMapOf<QuadItem, Double>()
@@ -86,7 +86,7 @@ open class NonHierarchicalDistanceBasedAlgorithm(
         val resultingClusters = mutableSetOf<Cluster>()
 
         synchronized(quadTree) {
-            for (candidate in quadItems) {
+            for (candidate in getClusteringItems()) {
                 if (visitedCandidates.contains(candidate)) {
                     // Candidate is already part of another cluster.
                     continue
@@ -133,6 +133,10 @@ open class NonHierarchicalDistanceBasedAlgorithm(
             }
         }
         return resultingClusters
+    }
+
+    protected open fun getClusteringItems(): Collection<QuadItem> {
+        return quadItems
     }
 
     private fun getZoomSpecificSpan(visibleRect: VisibleRect): Double {
