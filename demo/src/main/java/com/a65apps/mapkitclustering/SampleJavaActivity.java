@@ -80,7 +80,7 @@ public class SampleJavaActivity extends AppCompatActivity {
         mapView = findViewById(R.id.mapView);
         Map map = mapView.getMap();
         YandexRenderConfig renderConfig = new YandexRenderConfig();
-        ClusterRenderer<ClustersDiff, YandexRenderConfig> clusterRenderer =
+        ClusterRenderer<YandexRenderConfig> clusterRenderer =
                 new YandexClusterRenderer(map, clusterPinProvider, renderConfig, tapListener,
                         "RENDER_LAYER");
         clusterManager = new YandexClusterManager(clusterRenderer,

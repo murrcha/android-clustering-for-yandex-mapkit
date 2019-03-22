@@ -9,8 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.core.DefaultCluster
 import com.a65apps.clustering.core.VisibleRect
-import com.a65apps.clustering.core.algorithm.CacheNonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.core.algorithm.DefaultAlgorithmParameter
+import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm
 import com.a65apps.clustering.yandex.YandexClusterManager
 import com.a65apps.clustering.yandex.extention.toLatLng
 import com.a65apps.clustering.yandex.view.ClusterPinProvider
@@ -67,7 +67,7 @@ class SampleKotlinActivity : AppCompatActivity() {
         val clusterRenderer = YandexClusterRenderer(map, clusterPinProvider, renderConfig,
                 tapListener)
         clusterManager = YandexClusterManager(clusterRenderer,
-                CacheNonHierarchicalDistanceBasedAlgorithm(CustomClusterProvider()),
+                NonHierarchicalDistanceBasedAlgorithm(CustomClusterProvider()),
                 DefaultAlgorithmParameter(VisibleRect(map.visibleRegion.topLeft.toLatLng(),
                         map.visibleRegion.bottomRight.toLatLng()),
                         map.cameraPosition.zoom.toInt()))
