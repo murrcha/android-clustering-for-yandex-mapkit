@@ -5,7 +5,8 @@ open class DefaultClustersDiff(current: Set<Cluster>,
     private val currentClusters = current.toMutableSet()
     private val newClusters = new.toMutableSet()
     private val isCollapsing = newClusters.size <= currentClusters.size
-    private val transitions = transitionsMap(currentClusters, newClusters)
+    private val transitions = transitionsMap(currentClusters.toSet(),
+            newClusters.toSet())
 
     override fun transitions() = transitions
 
@@ -15,8 +16,8 @@ open class DefaultClustersDiff(current: Set<Cluster>,
 
     override fun currentClusters() = currentClusters
 
-    private fun transitionsMap(currentClusters: Set<Cluster>,
-                               newClusters: Set<Cluster>): Map<Cluster, Set<Cluster>> {
+    private fun transitionsMap(currentClusters: Collection<Cluster>,
+                               newClusters: Collection<Cluster>): Map<Cluster, Set<Cluster>> {
         if (currentClusters.isEmpty() || newClusters.isEmpty()) {
             return emptyMap()
         }
@@ -27,9 +28,9 @@ open class DefaultClustersDiff(current: Set<Cluster>,
         }
     }
 
-    private fun buildTransitionsMap(dst: Set<Cluster>,
-                                    src: Set<Cluster>): Map<Cluster, Set<Cluster>> {
-        val transitionMap = mutableMapOf<Cluster, Set<Cluster>>()
+    private fun buildTransitionsMap(dst: Collection<Cluster>,
+                                    src: Collection<Cluster>): Map<Cluster, Set<Cluster>> {
+        val transitionMap = HashMap<Cluster, Set<Cluster>>()
         for (child in src) {
             if (dst.contains(child)) {
                 continue
@@ -38,12 +39,14 @@ open class DefaultClustersDiff(current: Set<Cluster>,
             for (parent in dst) {
                 if (parent.isCluster()) {
                     if (clusterContainsAnother(parent, child)) {
-                        transitionMap[parent] = transitionMap[parent]?.plus(child) ?: setOf(child)
+                        transitionMap[parent] =
+                                transitionMap[parent]?.plus(child) ?: setOf(child)
                         added = true
                         break
                     }
                 }
             }
+
             if (!added) {
                 val closest = findClosestCluster(child, dst)
                 transitionMap[closest] =
@@ -54,11 +57,11 @@ open class DefaultClustersDiff(current: Set<Cluster>,
     }
 
     private fun clusterContainsAnother(parent: Cluster, child: Cluster): Boolean {
-        return (!child.isCluster() && parent.items().contains(child)) ||
-                (child.isCluster() && parent.items().containsAll(child.items()))
+        val childIsCluster = child.isCluster()
+        return (!childIsCluster && parent.items().contains(child))
     }
 
-    private fun findClosestCluster(cluster: Cluster, clusters: Set<Cluster>): Cluster {
+    private fun findClosestCluster(cluster: Cluster, clusters: Collection<Cluster>): Cluster {
         var minDistance = Double.MAX_VALUE
         var clusterCandidate: Cluster? = null
         val firstCluster: Cluster? = clusters.firstOrNull()

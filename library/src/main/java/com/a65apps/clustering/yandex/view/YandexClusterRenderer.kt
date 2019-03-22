@@ -6,6 +6,7 @@ import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.core.ClustersDiff
+import com.a65apps.clustering.core.DefaultClustersDiff
 import com.a65apps.clustering.core.LatLng
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.yandex.extention.addPlacemark
@@ -13,14 +14,16 @@ import com.a65apps.clustering.yandex.extention.toLatLng
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.map.Map
+import kotlinx.coroutines.*
 
-class YandexClusterRenderer(private val map: Map,
-                            private val imageProvider: ClusterPinProvider,
-                            private var yandexRenderConfig: YandexRenderConfig,
-                            private val mapObjectTapListener: TapListener? = null,
-                            name: String = "CLUSTER_LAYER")
-    : ClusterRenderer<ClustersDiff, YandexRenderConfig> {
+open class YandexClusterRenderer(private val map: Map,
+                                 private val imageProvider: ClusterPinProvider,
+                                 private var yandexRenderConfig: YandexRenderConfig,
+                                 private val mapObjectTapListener: TapListener? = null,
+                                 name: String = "CLUSTER_LAYER")
+    : ClusterRenderer<YandexRenderConfig> {
     private val layer: MapObjectCollection = map.addMapObjectLayer(name)
+    private val currentClusters = mutableSetOf<Cluster>()
     private val mapObjects = mutableMapOf<Cluster, PlacemarkMapObject>()
     private var clusterAnimator = AnimatorSet()
     private var tapListener = if (mapObjectTapListener != null) {
@@ -38,29 +41,49 @@ class YandexClusterRenderer(private val map: Map,
     } else {
         null
     }
+    private val uiScope = CoroutineScope(Dispatchers.Main)
+    private var job: Job? = null
 
-    override fun updateClusters(diffs: ClustersDiff) {
-        if (isSimpleUpdate(diffs)) {
-            simpleUpdate(diffs.newClusters())
-        } else {
-            val transitions = diffs.transitions()
-            clusterAnimator.cancel()
-            clusterAnimator = AnimatorSet()
-            for ((cluster, markers) in transitions) {
-                clusterAnimation(cluster, markers, diffs.collapsing())?.let {
-                    clusterAnimator.play(it)
-                }
-            }
-            clusterAnimator.duration = yandexRenderConfig.duration
-            clusterAnimator.interpolator = yandexRenderConfig.interpolator
-            clusterAnimator.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
-                    checkPins(diffs.newClusters())
-                    clusterAnimator.removeListener(this)
-                }
-            })
-            clusterAnimator.start()
+    override fun updateClusters(newClusters: Set<Cluster>) {
+        if (!clustersChanged(newClusters)) {
+            return
         }
+        job?.cancel()
+        if (isSimpleUpdate(newClusters)) {
+            simpleUpdate(newClusters)
+        } else {
+            job = animateUpdate(newClusters)
+        }
+    }
+
+    private fun animateUpdate(newClusters: Set<Cluster>) = uiScope.launch {
+        val diffs = withContext(Dispatchers.Default) {
+            coroutineScope {
+                calcDiffs(newClusters)
+            }
+        }
+        animateDiffs(diffs)
+        updateCurrent(newClusters)
+    }
+
+    private fun animateDiffs(diffs: ClustersDiff) {
+        val transitions = diffs.transitions()
+        clusterAnimator.cancel()
+        clusterAnimator = AnimatorSet()
+        for ((cluster, markers) in transitions) {
+            clusterAnimation(cluster, markers, diffs.collapsing())?.let {
+                clusterAnimator.play(it)
+            }
+        }
+        clusterAnimator.duration = yandexRenderConfig.duration
+        clusterAnimator.interpolator = yandexRenderConfig.interpolator
+        clusterAnimator.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                checkPins(diffs.newClusters())
+                clusterAnimator.removeListener(this)
+            }
+        })
+        clusterAnimator.start()
     }
 
     private fun clusterAnimation(cluster: Cluster, markers: Set<Cluster>,
@@ -72,9 +95,9 @@ class YandexClusterRenderer(private val map: Map,
         }
     }
 
-    private fun isSimpleUpdate(diffs: ClustersDiff): Boolean =
+    private fun isSimpleUpdate(newClusters: Set<Cluster>): Boolean =
             mapObjects.isEmpty() || !yandexRenderConfig.animationEnabled ||
-                    diffs.currentClusters().isEmpty() || diffs.newClusters().isEmpty()
+                    currentClusters.isEmpty() || newClusters.isEmpty()
 
     private fun checkPins(clusters: Set<Cluster>) {
         val iterator = mapObjects.iterator()
@@ -118,11 +141,16 @@ class YandexClusterRenderer(private val map: Map,
         }
     }
 
+    protected fun calcDiffs(newClusters: Set<Cluster>): ClustersDiff {
+        return DefaultClustersDiff(currentClusters, newClusters)
+    }
+
     private fun simpleUpdate(newClusters: Set<Cluster>) {
         layer.clear()
         for (cluster in newClusters) {
             createPlacemark(cluster)
         }
+        updateCurrent(newClusters)
     }
 
     //Перемещение маркеров в кластер с анимацией
@@ -257,5 +285,25 @@ class YandexClusterRenderer(private val map: Map,
         val maxLatitude = map.visibleRegion.topLeft.latitude
         return point.longitude in minLongitude..maxLongitude &&
                 point.latitude in minLatitude..maxLatitude
+    }
+
+    private fun clustersChanged(newClusters: Set<Cluster>): Boolean {
+        val currentClustersCount = clusterCount(currentClusters)
+        val newClusterCount = clusterCount(newClusters)
+        return currentClustersCount != newClusterCount ||
+                currentClusters.size != newClusters.size
+    }
+
+    private fun clusterCount(clusters: Set<Cluster>): Int = clusters
+            .toMutableSet()
+            .filter {
+                it.isCluster()
+            }.count()
+
+    private fun updateCurrent(newClusters: Set<Cluster>) {
+        synchronized(currentClusters) {
+            currentClusters.clear()
+            currentClusters.addAll(newClusters)
+        }
     }
 }
