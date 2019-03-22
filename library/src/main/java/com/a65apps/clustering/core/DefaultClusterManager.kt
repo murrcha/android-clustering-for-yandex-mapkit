@@ -22,15 +22,17 @@ open class DefaultClusterManager<in C : RenderConfig>(
 
     fun calculateClusters(algorithmParameter: DefaultAlgorithmParameter) {
         this.algorithmParameter = algorithmParameter
-        calculateJob?.cancel()
-        calculateJob = calculateClusters()
+        calculateClusters()
     }
 
-    private fun calculateClusters() = uiScope.launch {
-        val newItems = withContext(Dispatchers.Default) {
-            calculateNewItems()
+    private fun calculateClusters() {
+        calculateJob?.cancel()
+        calculateJob = uiScope.launch {
+            val newItems = withContext(Dispatchers.Default) {
+                calculateNewItems()
+            }
+            callRenderer(newItems)
         }
-        callRenderer(newItems)
     }
 
     private suspend fun calculateNewItems(): Set<Cluster> {
@@ -49,7 +51,7 @@ open class DefaultClusterManager<in C : RenderConfig>(
     override fun setItems(clusters: Set<Cluster>) {
         algorithmLock.writeLock().withLock {
             algorithm.addItems(clusters)
-            calculateClusters()
+            onModifyRawClusters()
         }
     }
 
