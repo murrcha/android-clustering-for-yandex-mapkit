@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="400dp"
+    android:orientation="vertical"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="50dp"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="MENU"
+        android:textAlignment="center"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Title" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select clusters amount"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused" />
+
+    <SeekBar
+        android:id="@+id/clusters_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:max="10000"
+        android:min="10"
+        android:progress="100" />
+
+    <TextView
+        android:id="@+id/amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="100"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Menu"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select algorithm"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused" />
+
+    <RadioGroup
+        android:id="@+id/radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <RadioButton
+            android:id="@+id/distance_based"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Distance based"
+            android:textAppearance="@style/TextAppearance.AppCompat.Menu" />
+
+        <RadioButton
+            android:id="@+id/cache_distance_based"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Distance based with cache"
+            android:textAppearance="@style/TextAppearance.AppCompat.Menu" />
+
+        <RadioButton
+            android:id="@+id/view_based"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View based"
+            android:textAppearance="@style/TextAppearance.AppCompat.Menu" />
+
+        <RadioButton
+            android:id="@+id/grid_based"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Grid based"
+            android:textAppearance="@style/TextAppearance.AppCompat.Menu" />
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/set_params"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.7"
+        android:text="SET PARAMS"
+        android:textColor="@color/common_google_signin_btn_text_dark_focused" />
+
+</LinearLayout>

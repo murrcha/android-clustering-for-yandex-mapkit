@@ -4,14 +4,23 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.a65apps.clustering.core.Cluster;
-import com.a65apps.clustering.core.ClustersDiff;
 import com.a65apps.clustering.core.DefaultCluster;
 import com.a65apps.clustering.core.VisibleRect;
+import com.a65apps.clustering.core.algorithm.Algorithm;
+import com.a65apps.clustering.core.algorithm.CacheNonHierarchicalDistanceBasedAlgorithm;
 import com.a65apps.clustering.core.algorithm.DefaultAlgorithmParameter;
+import com.a65apps.clustering.core.algorithm.GridBasedAlgorithm;
 import com.a65apps.clustering.core.algorithm.NonHierarchicalDistanceBasedAlgorithm;
+import com.a65apps.clustering.core.algorithm.NonHierarchicalViewBasedAlgorithm;
 import com.a65apps.clustering.core.view.ClusterRenderer;
 import com.a65apps.clustering.yandex.YandexClusterManager;
 import com.a65apps.clustering.yandex.extention.PointExtKt;
@@ -19,6 +28,7 @@ import com.a65apps.clustering.yandex.view.ClusterPinProvider;
 import com.a65apps.clustering.yandex.view.TapListener;
 import com.a65apps.clustering.yandex.view.YandexClusterRenderer;
 import com.a65apps.clustering.yandex.view.YandexRenderConfig;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.yandex.mapkit.MapKitFactory;
 import com.yandex.mapkit.geometry.Point;
 import com.yandex.mapkit.map.InputListener;
@@ -36,9 +46,16 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class SampleJavaActivity extends AppCompatActivity {
 
+    private BottomSheetBehavior bottomSheetBehavior;
+    private TextView amount;
+    private RadioGroup radioGroup;
+
     private Set<Cluster> testMarkers = new HashSet<>();
     private YandexClusterManager clusterManager;
+    private ClusterRenderer<YandexRenderConfig> clusterRenderer;
+    private DefaultAlgorithmParameter parameter;
     private Toast toast;
+    private Map map;
     private final InputListener inputListener = new InputListener() {
         @Override
         public void onMapTap(@NonNull Map map,
@@ -75,25 +92,22 @@ public class SampleJavaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         setTitle("Java version");
+        initViews();
 
         ClusterPinProvider clusterPinProvider = new CustomPinProvider(this);
         mapView = findViewById(R.id.mapView);
-        Map map = mapView.getMap();
+        map = mapView.getMap();
         YandexRenderConfig renderConfig = new YandexRenderConfig();
-        ClusterRenderer<YandexRenderConfig> clusterRenderer =
+        clusterRenderer =
                 new YandexClusterRenderer(map, clusterPinProvider, renderConfig, tapListener,
                         "RENDER_LAYER");
-        clusterManager = new YandexClusterManager(clusterRenderer,
-                new NonHierarchicalDistanceBasedAlgorithm(new CustomClusterProvider()),
-                new DefaultAlgorithmParameter(
-                        new VisibleRect(
-                                PointExtKt.toLatLng(map.getVisibleRegion().getTopLeft()),
-                                PointExtKt.toLatLng(map.getVisibleRegion().getBottomRight())),
-                        (int) map.getCameraPosition().getZoom()
-                ));
-        map.addCameraListener(clusterManager);
-        map.addInputListener(inputListener);
-        map.move(TestData.INSTANCE.getCAMERA_POSITION());
+        parameter = new DefaultAlgorithmParameter(
+                new VisibleRect(
+                        PointExtKt.toLatLng(map.getVisibleRegion().getTopLeft()),
+                        PointExtKt.toLatLng(map.getVisibleRegion().getBottomRight())),
+                (int) map.getCameraPosition().getZoom()
+        );
+        initClusterManager(new NonHierarchicalDistanceBasedAlgorithm(new CustomClusterProvider()));
     }
 
     @Override
@@ -136,7 +150,7 @@ public class SampleJavaActivity extends AppCompatActivity {
                 break;
             }
             case R.id.set_markers: {
-                setTestPoints();
+                setTestPoints(100);
                 break;
             }
             case R.id.clear_markers: {
@@ -160,10 +174,11 @@ public class SampleJavaActivity extends AppCompatActivity {
         finish();
     }
 
-    private void setTestPoints() {
+    private void setTestPoints(int amount) {
         Set<Cluster> markers = new HashSet<>();
         clusterManager.clearItems();
-        for (Point point : TestData.INSTANCE.getPOINTS_LIST()) {
+        for (int i = 0; i < amount; i++) {
+            Point point = TestData.INSTANCE.randomPoint();
             markers.add(new DefaultCluster(PointExtKt.toLatLng(point), null));
         }
         clusterManager.setItems(markers);
@@ -206,5 +221,73 @@ public class SampleJavaActivity extends AppCompatActivity {
         }
         toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    private void initViews() {
+        LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                }
+            }
+        });
+        SeekBar bar = bottomSheet.findViewById(R.id.clusters_amount);
+        amount = bottomSheet.findViewById(R.id.amount);
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar,
+                                          int progress,
+                                          boolean fromUser) {
+                amount.setText(String.valueOf(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        radioGroup = bottomSheet.findViewById(R.id.radio_group);
+        Button setParams = bottomSheet.findViewById(R.id.set_params);
+        setParams.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clusterManager.clearItems();
+                initClusterManager(setAlgorithm());
+                setTestPoints(Integer.valueOf(amount.getText().toString()));
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+    }
+
+    private void initClusterManager(Algorithm<DefaultAlgorithmParameter> algorithm) {
+        clusterManager = new YandexClusterManager(clusterRenderer, algorithm, parameter);
+        map.addCameraListener(clusterManager);
+        map.addInputListener(inputListener);
+        map.move(TestData.INSTANCE.getCAMERA_POSITION());
+    }
+
+    private Algorithm<DefaultAlgorithmParameter> setAlgorithm() {
+        CustomClusterProvider provider = new CustomClusterProvider();
+        int radioButtonId = radioGroup.getCheckedRadioButtonId();
+        switch (radioButtonId) {
+            case R.id.cache_distance_based:
+                return new CacheNonHierarchicalDistanceBasedAlgorithm(provider);
+            case R.id.view_based:
+                return new NonHierarchicalViewBasedAlgorithm(provider);
+            case R.id.grid_based:
+                return new GridBasedAlgorithm(provider);
+            case R.id.distance_based:
+            default:
+                return new NonHierarchicalDistanceBasedAlgorithm(provider);
+        }
     }
 }
