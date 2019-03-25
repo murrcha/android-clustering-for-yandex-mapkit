@@ -290,8 +290,16 @@ open class YandexClusterRenderer(private val map: Map,
     private fun clustersChanged(newClusters: Set<Cluster>): Boolean {
         val currentClustersCount = clusterCount(currentClusters)
         val newClusterCount = clusterCount(newClusters)
-        return currentClustersCount != newClusterCount ||
-                currentClusters.size != newClusters.size
+        return (currentClustersCount != newClusterCount) ||
+                (pinCount(currentClusters) != pinCount(newClusters))
+    }
+
+    private fun pinCount(clusters: Set<Cluster>): Int {
+        var count = 0
+        for (item in clusters) {
+            count += item.size()
+        }
+        return count
     }
 
     private fun clusterCount(clusters: Set<Cluster>): Int = clusters

@@ -2,11 +2,10 @@ package com.a65apps.clustering.core
 
 open class DefaultClustersDiff(current: Set<Cluster>,
                                new: Set<Cluster> = emptySet()) : ClustersDiff {
-    private val currentClusters = current.toMutableSet()
-    private val newClusters = new.toMutableSet()
+    private val currentClusters = current.toSet()
+    private val newClusters = new.toSet()
     private val isCollapsing = newClusters.size <= currentClusters.size
-    private val transitions = transitionsMap(currentClusters.toSet(),
-            newClusters.toSet())
+    private val transitions = transitionsMap(currentClusters, newClusters)
 
     override fun transitions() = transitions
 
@@ -35,30 +34,11 @@ open class DefaultClustersDiff(current: Set<Cluster>,
             if (dst.contains(child)) {
                 continue
             }
-            var added = false
-            for (parent in dst) {
-                if (parent.isCluster()) {
-                    if (clusterContainsAnother(parent, child)) {
-                        transitionMap[parent] =
-                                transitionMap[parent]?.plus(child) ?: setOf(child)
-                        added = true
-                        break
-                    }
-                }
-            }
-
-            if (!added) {
-                val closest = findClosestCluster(child, dst)
-                transitionMap[closest] =
-                        transitionMap[closest]?.plus(child) ?: setOf(child)
-            }
+            val closest = findClosestCluster(child, dst)
+            transitionMap[closest] =
+                    transitionMap[closest]?.plus(child) ?: setOf(child)
         }
         return transitionMap
-    }
-
-    private fun clusterContainsAnother(parent: Cluster, child: Cluster): Boolean {
-        val childIsCluster = child.isCluster()
-        return (!childIsCluster && parent.items().contains(child))
     }
 
     private fun findClosestCluster(cluster: Cluster, clusters: Collection<Cluster>): Cluster {
