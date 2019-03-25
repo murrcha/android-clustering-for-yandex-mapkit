@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Clustering demo app</string>
+    <string-array name="algorithms">
+        <item name="distance_based">Distance based</item>
+        <item name="cache_distance_based">Distance based with cache</item>
+        <item name="view_based">View based</item>
+        <item name="grid_based">Grid based</item>
+    </string-array>
 </resources>

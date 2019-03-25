@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.core.DefaultCluster
 import com.a65apps.clustering.core.VisibleRect
@@ -27,8 +28,9 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class SampleKotlinActivity : AppCompatActivity() {
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
+    private lateinit var bottomSheet: ConstraintLayout
     private lateinit var amount: TextView
-    private lateinit var radioGroup: RadioGroup
+    private lateinit var spinner: Spinner
     private lateinit var clusterPinProvider: ClusterPinProvider
     private lateinit var clusterManager: YandexClusterManager
     private lateinit var clusterRenderer: ClusterRenderer<YandexRenderConfig>
@@ -103,12 +105,6 @@ class SampleKotlinActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
-            R.id.add_marker -> addTestPoint()
-            R.id.remove_marker -> removeTestPoint()
-            R.id.add_markers -> addTestPoints(10)
-            R.id.remove_markers -> removeTestPoints()
-            R.id.set_markers -> setTestPoints(100)
-            R.id.clear_markers -> clearTestPoints()
             R.id.switch_activity -> switchActivity()
             else -> return super.onOptionsItemSelected(item)
         }
@@ -167,7 +163,7 @@ class SampleKotlinActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        val bottomSheet = findViewById<LinearLayout>(R.id.bottom_sheet)
+        bottomSheet = findViewById(R.id.bottom_sheet)
         bottomSheet.setOnClickListener {
             if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED)
@@ -175,25 +171,64 @@ class SampleKotlinActivity : AppCompatActivity() {
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
             }
         }
-        val bar = bottomSheet.findViewById(R.id.clusters_amount) as SeekBar
         amount = bottomSheet.findViewById(R.id.amount) as TextView
+        val bar = bottomSheet.findViewById(R.id.clusters_amount) as SeekBar
         bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar,
                                            progress: Int,
                                            fromUser: Boolean) {
-                amount.text = progress.toString()
+                val value = progress / 10 * 10
+                amount.text = value.toString()
             }
+
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
-        bottomSheetBehavior = BottomSheetBehavior.from<LinearLayout>(bottomSheet)
+        bottomSheetBehavior = BottomSheetBehavior.from<ConstraintLayout>(bottomSheet)
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        radioGroup = bottomSheet.findViewById(R.id.radio_group)
         val setParams = bottomSheet.findViewById(R.id.set_params) as Button
         setParams.setOnClickListener {
             clusterManager.clearItems()
             initClusterManager(setAlgorithm())
             setTestPoints(Integer.valueOf(amount.text.toString()))
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        spinner = bottomSheet.findViewById(R.id.algorithm_spinner)
+        val minus = bottomSheet.findViewById<Button>(R.id.minus)
+        minus.setOnClickListener {
+            if (bar.progress > 0) {
+                bar.progress -= 10
+            }
+        }
+        val plus = bottomSheet.findViewById<Button>(R.id.plus)
+        plus.setOnClickListener {
+            if (bar.progress < 10000) {
+                bar.progress += 10
+            }
+        }
+        val clear = bottomSheet.findViewById<Button>(R.id.clear_clusters)
+        clear.setOnClickListener {
+            clearTestPoints()
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        val addOne = bottomSheet.findViewById<Button>(R.id.add_one)
+        addOne.setOnClickListener {
+            addTestPoint()
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        val addSome = bottomSheet.findViewById<Button>(R.id.add_some)
+        addSome.setOnClickListener {
+            addTestPoints(bar.progress)
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        val removeSelected = bottomSheet.findViewById<Button>(R.id.remove_selected)
+        removeSelected.setOnClickListener {
+            removeTestPoint()
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        val removeAdded = bottomSheet.findViewById<Button>(R.id.remove_added)
+        removeAdded.setOnClickListener {
+            removeTestPoints()
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
@@ -207,12 +242,11 @@ class SampleKotlinActivity : AppCompatActivity() {
 
     private fun setAlgorithm(): Algorithm<DefaultAlgorithmParameter> {
         val provider = CustomClusterProvider()
-        val radioButtonId = radioGroup.checkedRadioButtonId
-        when (radioButtonId) {
-            R.id.cache_distance_based -> return CacheNonHierarchicalDistanceBasedAlgorithm(provider)
-            R.id.view_based -> return NonHierarchicalViewBasedAlgorithm(provider)
-            R.id.grid_based -> return GridBasedAlgorithm(provider)
-            else -> return NonHierarchicalDistanceBasedAlgorithm(provider)
+        return when (spinner.selectedItem.toString()) {
+            "Distance based with cache" -> CacheNonHierarchicalDistanceBasedAlgorithm(provider)
+            "View based" -> NonHierarchicalViewBasedAlgorithm(provider)
+            "Grid based" -> GridBasedAlgorithm(provider)
+            else -> NonHierarchicalDistanceBasedAlgorithm(provider)
         }
     }
 }
