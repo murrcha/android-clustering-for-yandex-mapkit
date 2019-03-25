@@ -2,6 +2,7 @@ package com.a65apps.clustering.core
 
 import com.a65apps.clustering.core.algorithm.Algorithm
 import com.a65apps.clustering.core.algorithm.DefaultAlgorithmParameter
+import com.a65apps.clustering.core.log.CMLogger
 import com.a65apps.clustering.core.view.ClusterRenderer
 import com.a65apps.clustering.core.view.RenderConfig
 import kotlinx.coroutines.*
@@ -29,8 +30,10 @@ open class DefaultClusterManager<in C : RenderConfig>(
         calculateJob?.cancel()
         calculateJob = uiScope.launch {
             val newItems = withContext(Dispatchers.Default) {
+                CMLogger.logMessage("start calculation")
                 calculateNewItems()
             }
+            CMLogger.logMessage("end calculation")
             callRenderer(newItems)
         }
     }

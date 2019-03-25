@@ -1,5 +1,7 @@
 package com.a65apps.clustering.core
 
+import com.a65apps.clustering.core.log.CMLogger
+
 open class DefaultClustersDiff(current: Set<Cluster>,
                                new: Set<Cluster> = emptySet()) : ClustersDiff {
     private val currentClusters = current.toSet()
@@ -29,6 +31,7 @@ open class DefaultClustersDiff(current: Set<Cluster>,
 
     private fun buildTransitionsMap(dst: Collection<Cluster>,
                                     src: Collection<Cluster>): Map<Cluster, Set<Cluster>> {
+        CMLogger.logMessage("start building transitionMap dst:${dst.size} src:${src.size}")
         val transitionMap = HashMap<Cluster, Set<Cluster>>()
         for (child in src) {
             if (dst.contains(child)) {
@@ -38,6 +41,7 @@ open class DefaultClustersDiff(current: Set<Cluster>,
             transitionMap[closest] =
                     transitionMap[closest]?.plus(child) ?: setOf(child)
         }
+        CMLogger.logMessage("end building transitionMap")
         return transitionMap
     }
 
