@@ -39,6 +39,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlinVersion"
     implementation "androidx.appcompat:appcompat:$versions.appCompatVersion"
     implementation "androidx.constraintlayout:constraintlayout:$versions.constraintlayoutVersion"
+    implementation "com.google.android.material:material:$versions.materialVersion"
 
     testImplementation "junit:junit:$versions.junit4Version"
     androidTestImplementation "androidx.test:runner:$versions.testRunnerVersion"

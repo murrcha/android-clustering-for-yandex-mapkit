@@ -6,6 +6,7 @@ buildscript {
             'appCompatVersion'            : '1.1.0-alpha03',
             'constraintlayoutVersion'     : '1.1.3',
             'permissionsdispatcherVersion': '3.3.1',
+            'materialVersion'             : '1.1.0-alpha04',
 
             'kotlinVersion'               : '1.3.21',
             'mapkitVersion'               : '3.3.1',
