@@ -37,12 +37,31 @@ open class DefaultClustersDiff(current: Set<Cluster>,
             if (dst.contains(child)) {
                 continue
             }
-            val closest = findClosestCluster(child, dst)
-            transitionMap[closest] =
-                    transitionMap[closest]?.plus(child) ?: setOf(child)
+            var added = false
+            for (parent in dst) {
+                if (parent.isCluster()) {
+                    if (clusterContainsAnother(parent, child)) {
+                        transitionMap[parent] =
+                                transitionMap[parent]?.plus(child) ?: setOf(child)
+                        added = true
+                        break
+                    }
+                }
+            }
+
+            if (!added) {
+                val closest = findClosestCluster(child, dst)
+                transitionMap[closest] =
+                        transitionMap[closest]?.plus(child) ?: setOf(child)
+            }
         }
         CMLogger.logMessage("end building transitionMap")
         return transitionMap
+    }
+
+    private fun clusterContainsAnother(parent: Cluster, child: Cluster): Boolean {
+        val childIsCluster = child.isCluster()
+        return (!childIsCluster && parent.items().contains(child))
     }
 
     private fun findClosestCluster(cluster: Cluster, clusters: Collection<Cluster>): Cluster {
