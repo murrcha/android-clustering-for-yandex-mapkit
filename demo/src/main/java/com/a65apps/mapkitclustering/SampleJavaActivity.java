@@ -6,9 +6,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.RadioGroup;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,12 +42,13 @@ import java.util.Set;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 public class SampleJavaActivity extends AppCompatActivity {
 
     private BottomSheetBehavior bottomSheetBehavior;
     private TextView amount;
-    private RadioGroup radioGroup;
+    private Spinner spinner;
 
     private Set<Cluster> testMarkers = new HashSet<>();
     private YandexClusterManager clusterManager;
@@ -133,30 +133,6 @@ public class SampleJavaActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.add_marker: {
-                addTestPoint();
-                break;
-            }
-            case R.id.remove_marker: {
-                removeTestPoint();
-                break;
-            }
-            case R.id.add_markers: {
-                addTestPoints(10);
-                break;
-            }
-            case R.id.remove_markers: {
-                removeTestPoints();
-                break;
-            }
-            case R.id.set_markers: {
-                setTestPoints(100);
-                break;
-            }
-            case R.id.clear_markers: {
-                clearTestPoints();
-                break;
-            }
             case R.id.switch_activity: {
                 switchActivity();
                 break;
@@ -224,7 +200,7 @@ public class SampleJavaActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
+        ConstraintLayout bottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -235,14 +211,15 @@ public class SampleJavaActivity extends AppCompatActivity {
                 }
             }
         });
-        SeekBar bar = bottomSheet.findViewById(R.id.clusters_amount);
+        final SeekBar bar = bottomSheet.findViewById(R.id.clusters_amount);
         amount = bottomSheet.findViewById(R.id.amount);
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar,
                                           int progress,
                                           boolean fromUser) {
-                amount.setText(String.valueOf(progress));
+                int value = progress / 10 * 10;
+                amount.setText(String.valueOf(value));
             }
 
             @Override
@@ -255,7 +232,6 @@ public class SampleJavaActivity extends AppCompatActivity {
         });
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        radioGroup = bottomSheet.findViewById(R.id.radio_group);
         Button setParams = bottomSheet.findViewById(R.id.set_params);
         setParams.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -263,6 +239,67 @@ public class SampleJavaActivity extends AppCompatActivity {
                 clusterManager.clearItems();
                 initClusterManager(setAlgorithm());
                 setTestPoints(Integer.valueOf(amount.getText().toString()));
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+        spinner = bottomSheet.findViewById(R.id.algorithm_spinner);
+        Button minus = bottomSheet.findViewById(R.id.minus);
+        minus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int progress = bar.getProgress();
+                if (progress > 0) {
+                    bar.setProgress(progress - 10);
+                }
+            }
+        });
+        Button plus = bottomSheet.findViewById(R.id.plus);
+        plus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int progress = bar.getProgress();
+                if (progress < 10000) {
+                    bar.setProgress(progress + 10);
+                }
+            }
+        });
+        Button clear = bottomSheet.findViewById(R.id.clear_clusters);
+        clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clearTestPoints();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+        Button addOne = bottomSheet.findViewById(R.id.add_one);
+        addOne.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addTestPoint();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+        Button addSome = bottomSheet.findViewById(R.id.add_some);
+        addSome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addTestPoints(bar.getProgress());
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+        Button removeSelected = bottomSheet.findViewById(R.id.remove_selected);
+        removeSelected.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeTestPoint();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+        Button removeAdded = bottomSheet.findViewById(R.id.remove_added);
+        removeAdded.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeTestPoints();
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
@@ -277,15 +314,13 @@ public class SampleJavaActivity extends AppCompatActivity {
 
     private Algorithm<DefaultAlgorithmParameter> setAlgorithm() {
         CustomClusterProvider provider = new CustomClusterProvider();
-        int radioButtonId = radioGroup.getCheckedRadioButtonId();
-        switch (radioButtonId) {
-            case R.id.cache_distance_based:
+        switch (spinner.getSelectedItem().toString()) {
+            case "Distance based with cache":
                 return new CacheNonHierarchicalDistanceBasedAlgorithm(provider);
-            case R.id.view_based:
+            case "View based":
                 return new NonHierarchicalViewBasedAlgorithm(provider);
-            case R.id.grid_based:
+            case "Grid based":
                 return new GridBasedAlgorithm(provider);
-            case R.id.distance_based:
             default:
                 return new NonHierarchicalDistanceBasedAlgorithm(provider);
         }
