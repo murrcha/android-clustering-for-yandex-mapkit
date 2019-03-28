@@ -5,6 +5,9 @@ import com.yandex.runtime.image.AnimatedImageProvider
 import com.yandex.runtime.image.ImageProvider
 import com.yandex.runtime.ui_view.ViewProvider
 
+/**
+ * Returns Yandex MapKit icon provider with style
+ */
 open class YandexPinProvider {
     private var imageProvider: ImageProvider? = null
     private var viewProvider: ViewProvider? = null

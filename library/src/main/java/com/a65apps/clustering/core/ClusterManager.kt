@@ -1,5 +1,8 @@
 package com.a65apps.clustering.core
 
+/**
+ * Groups many items.
+ */
 interface ClusterManager {
     fun setItems(clusters: Set<Cluster>)
     fun clearItems()

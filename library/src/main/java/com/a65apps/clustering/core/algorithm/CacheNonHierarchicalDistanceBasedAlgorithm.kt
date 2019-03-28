@@ -3,6 +3,9 @@ package com.a65apps.clustering.core.algorithm
 import com.a65apps.clustering.core.Cluster
 import com.a65apps.clustering.core.DefaultClusterProvider
 
+/**
+ * Caching clustering results for specific zoom
+ */
 open class CacheNonHierarchicalDistanceBasedAlgorithm(
         clusterProvider: ClusterProvider = DefaultClusterProvider()) :
         NonHierarchicalDistanceBasedAlgorithm(clusterProvider) {

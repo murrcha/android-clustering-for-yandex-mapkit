@@ -9,6 +9,9 @@ import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.withLock
 
+/**
+ * Default implementation of ClusterManager
+ */
 open class DefaultClusterManager<in C : RenderConfig>(
         private val renderer: ClusterRenderer<C>,
         private var algorithm: Algorithm<DefaultAlgorithmParameter>,

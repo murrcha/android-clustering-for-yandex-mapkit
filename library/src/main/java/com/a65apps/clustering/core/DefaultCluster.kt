@@ -1,5 +1,8 @@
 package com.a65apps.clustering.core
 
+/**
+ * Default implementation of algorithm parameter
+ */
 open class DefaultCluster(protected val geoCoor: LatLng,
                           protected val payload: Any? = null) : Cluster {
 
@@ -17,7 +20,7 @@ open class DefaultCluster(protected val geoCoor: LatLng,
 
     override fun payload(): Any? = payload
 
-    override fun isCluster(): Boolean = items().size > 3
+    override fun isCluster(): Boolean = items.isNotEmpty()
 
     override fun size(): Int = items().size
 
