@@ -2,12 +2,15 @@ package com.a65apps.clustering.core
 
 open class DefaultCluster(protected val geoCoor: LatLng,
                           protected val payload: Any? = null) : Cluster {
+
+    private val self = setOf(this)
+
     private val items: MutableSet<Cluster> = mutableSetOf()
 
     override fun items(): Set<Cluster> = if (items.isNotEmpty()) {
-        items.toSet()
+        items
     } else {
-        setOf(this)
+        self
     }
 
     override fun geoCoor(): LatLng = geoCoor
