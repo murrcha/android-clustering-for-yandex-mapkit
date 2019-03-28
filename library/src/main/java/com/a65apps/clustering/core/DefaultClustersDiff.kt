@@ -33,26 +33,25 @@ open class DefaultClustersDiff(current: Set<Cluster>,
                                     src: Collection<Cluster>): Map<Cluster, Set<Cluster>> {
         CMLogger.logMessage("start building transitionMap dst:${dst.size} src:${src.size}")
         val transitionMap = HashMap<Cluster, Set<Cluster>>()
+        val clustersInDst = dst.filter { it.isCluster() }
+
         for (child in src) {
             if (dst.contains(child)) {
                 continue
             }
             var added = false
-            for (parent in dst) {
-                if (parent.isCluster()) {
-                    if (clusterContainsAnother(parent, child)) {
-                        transitionMap[parent] =
-                                transitionMap[parent]?.plus(child) ?: setOf(child)
-                        added = true
-                        break
-                    }
+
+            for (parent in clustersInDst) {
+                if (clusterContainsAnother(parent, child)) {
+                    transitionMap[parent] = transitionMap[parent]?.plus(child) ?: setOf(child)
+                    added = true
+                    break
                 }
             }
 
             if (!added) {
                 val closest = findClosestCluster(child, dst)
-                transitionMap[closest] =
-                        transitionMap[closest]?.plus(child) ?: setOf(child)
+                transitionMap[closest] = transitionMap[closest]?.plus(child) ?: setOf(child)
             }
         }
         CMLogger.logMessage("end building transitionMap")
@@ -68,15 +67,16 @@ open class DefaultClustersDiff(current: Set<Cluster>,
         var minDistance = Double.MAX_VALUE
         var clusterCandidate: Cluster? = null
         val firstCluster: Cluster? = clusters.firstOrNull()
-        clusters.filter {
-            it.isCluster()
-        }.forEach {
-            val distance = distanceBetween(it, cluster)
-            if (clusterCandidate == null || distance < minDistance) {
-                minDistance = distance
-                clusterCandidate = it
-            }
-        }
+        clusters.asSequence()
+                .filter {
+                    it.isCluster()
+                }.forEach {
+                    val distance = distanceBetween(it, cluster)
+                    if (clusterCandidate == null || distance < minDistance) {
+                        minDistance = distance
+                        clusterCandidate = it
+                    }
+                }
         if (clusterCandidate == null) {
             clusterCandidate = firstCluster
         }
