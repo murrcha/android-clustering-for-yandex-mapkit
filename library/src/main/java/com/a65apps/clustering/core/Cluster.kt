@@ -1,5 +1,8 @@
 package com.a65apps.clustering.core
 
+/**
+ * Items group
+ */
 interface Cluster {
     fun geoCoor(): LatLng
     fun payload(): Any?

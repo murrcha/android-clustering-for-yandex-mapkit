@@ -10,6 +10,9 @@ import java.util.*
 
 private const val DEFAULT_GRID_SIZE = 100
 
+/**
+ * Groups markers into a grid.
+ */
 open class GridBasedAlgorithm(
         private val clusterProvider: ClusterProvider = DefaultClusterProvider()) :
         Algorithm<DefaultAlgorithmParameter> {

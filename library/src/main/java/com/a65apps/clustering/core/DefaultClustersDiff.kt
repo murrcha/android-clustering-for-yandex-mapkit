@@ -2,6 +2,9 @@ package com.a65apps.clustering.core
 
 import com.a65apps.clustering.core.log.CMLogger
 
+/**
+ * Default implementation of ClustersDiff
+ */
 open class DefaultClustersDiff(current: Set<Cluster>,
                                new: Set<Cluster> = emptySet()) : ClustersDiff {
     private val currentClusters = current.toSet()

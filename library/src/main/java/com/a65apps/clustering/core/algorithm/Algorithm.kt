@@ -2,6 +2,9 @@ package com.a65apps.clustering.core.algorithm
 
 import com.a65apps.clustering.core.Cluster
 
+/**
+ * Logic for computing clusters
+ */
 interface Algorithm<P> {
     fun addItem(item: Cluster)
     fun addItems(items: Collection<Cluster>)

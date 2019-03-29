@@ -13,6 +13,9 @@ import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.CameraUpdateSource
 import com.yandex.mapkit.map.Map
 
+/**
+ * Implementation of ClusterManager for Yandex MapKit
+ */
 open class YandexClusterManager(
         renderer: ClusterRenderer<YandexRenderConfig>,
         val algorithm: Algorithm<DefaultAlgorithmParameter> = CacheNonHierarchicalDistanceBasedAlgorithm(),

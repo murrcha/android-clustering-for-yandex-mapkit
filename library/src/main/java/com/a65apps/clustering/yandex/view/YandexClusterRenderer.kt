@@ -16,6 +16,10 @@ import com.yandex.mapkit.map.*
 import com.yandex.mapkit.map.Map
 import kotlinx.coroutines.*
 
+/**
+ * Implementation of ClusterRenderer for Yandex MapKit.
+ * Display clusters on Map
+ */
 open class YandexClusterRenderer(private val map: Map,
                                  private val imageProvider: ClusterPinProvider,
                                  private var yandexRenderConfig: YandexRenderConfig,
@@ -95,10 +99,16 @@ open class YandexClusterRenderer(private val map: Map,
         }
     }
 
+    /**
+     * Returns true if state change need animate
+     */
     private fun isSimpleUpdate(newClusters: Set<Cluster>): Boolean =
             mapObjects.isEmpty() || !yandexRenderConfig.animationEnabled ||
                     currentClusters.isEmpty() || newClusters.isEmpty()
 
+    /**
+     * Checks state correctness
+     */
     private fun checkPins(clusters: Set<Cluster>) {
         val iterator = mapObjects.iterator()
         while (iterator.hasNext()) {
@@ -114,14 +124,6 @@ open class YandexClusterRenderer(private val map: Map,
             if (!mapObjects.containsKey(marker)) {
                 createPlacemark(marker)
             }
-        }
-    }
-
-    override fun setClusters(clusters: Set<Cluster>) {
-        mapObjects.clear()
-        layer.clear()
-        clusters.forEach {
-            createPlacemark(it)
         }
     }
 
@@ -141,10 +143,16 @@ open class YandexClusterRenderer(private val map: Map,
         }
     }
 
+    /**
+     * Calculating differents, which will be animate
+     */
     protected fun calcDiffs(newClusters: Set<Cluster>): ClustersDiff {
         return DefaultClustersDiff(currentClusters, newClusters)
     }
 
+    /**
+     * Update without animation
+     */
     private fun simpleUpdate(newClusters: Set<Cluster>) {
         layer.clear()
         for (cluster in newClusters) {
@@ -153,11 +161,11 @@ open class YandexClusterRenderer(private val map: Map,
         updateCurrent(newClusters)
     }
 
-    //Перемещение маркеров в кластер с анимацией
+    /**
+     * Animating many to one
+     */
     private fun animateMarkersToCluster(cluster: Cluster, clusters: Set<Cluster>): Animator? {
-        //коллекция маркеров которые будут анимироваться в кластер
         val movedMarkers = mutableMapOf<PlacemarkMapObject, LatLng>()
-        //val startCoordinates = mutableListOf<LatLng>()
         val clusterPoint = cluster.geoCoor()
         clusters.forEach { marker ->
             mapObjects[marker]?.let { mapObject ->
@@ -199,9 +207,10 @@ open class YandexClusterRenderer(private val map: Map,
         return animator
     }
 
-    //Перемещение маркеров из кластера с анимацией
+    /**
+     * Animating one to many
+     */
     private fun animateClusterToMarkers(cluster: Cluster, clusters: Set<Cluster>): Animator? {
-        //коллекция маркеров которые будут анимироваться в кластер
         val movedMarkers = mutableMapOf<PlacemarkMapObject, LatLng>()
         val clusterPoint = cluster.geoCoor()
         clusters.forEach {
@@ -287,6 +296,9 @@ open class YandexClusterRenderer(private val map: Map,
                 point.latitude in minLatitude..maxLatitude
     }
 
+    /**
+     * Return true if new clusters is different from current clusters
+     */
     private fun clustersChanged(newClusters: Set<Cluster>): Boolean {
         val currentClustersCount = clusterCount(currentClusters)
         val newClusterCount = clusterCount(newClusters)
@@ -307,9 +319,7 @@ open class YandexClusterRenderer(private val map: Map,
             }.count()
 
     private fun updateCurrent(newClusters: Set<Cluster>) {
-        synchronized(currentClusters) {
-            currentClusters.clear()
-            currentClusters.addAll(newClusters)
-        }
+        currentClusters.clear()
+        currentClusters.addAll(newClusters)
     }
 }

@@ -25,7 +25,7 @@ android {
 
 static def getMySecret(String property) {
     Properties props = new Properties()
-    def file = new File('secret.properties')
+    def file = new File('sample/secret.properties')
     if (!file.exists()) {
         return null
     }
